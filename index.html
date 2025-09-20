@@ -13,7 +13,6 @@
             background: linear-gradient(135deg, #1f2937 0%, #0f172a 100%);
             color: #e2e8f0;
             touch-action: none;
-            /* Prevent touch actions like zooming or panning */
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -23,18 +22,27 @@
             overflow: hidden;
         }
 
-        .compass-container {
+        .compass-and-labels-wrapper {
             position: relative;
             width: 90vmin;
             height: 90vmin;
             max-width: 32rem;
             max-height: 32rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .compass-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 0 10px rgba(255, 255, 255, 0.1);
             border-radius: 50%;
-            overflow: hidden;
             background: radial-gradient(circle, #2d3748 0%, #1a202c 100%);
             border: 4px solid #4a5568;
-            margin-bottom: 2rem;
+            overflow: hidden; /* This keeps the canvas inside the border */
         }
         
         #compass-face-wrapper {
@@ -62,7 +70,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 2; /* Ensure the needle is always on top */
+            z-index: 2;
         }
         
         #needle {
@@ -114,29 +122,51 @@
         .info-box h2 {
             color: #3b82f6;
         }
+
+        .cardinal-label {
+            position: absolute;
+            font-size: 1.2rem; /* Reduced font size */
+            font-weight: 700;
+            z-index: 3;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        .cardinal-label.n { top: -2rem; left: 50%; transform: translateX(-50%); color: #ef4444; }
+        .cardinal-label.s { bottom: -2rem; left: 50%; transform: translateX(-50%); }
+        .cardinal-label.e { right: -2rem; top: 50%; transform: translateY(-50%); }
+        .cardinal-label.w { left: -2rem; top: 50%; transform: translateY(-50%); }
     </style>
 </head>
 
 <body class="bg-gray-900 flex flex-col items-center justify-center min-h-screen text-gray-200 p-4">
 
-    <!-- Compass Container -->
+    <!-- Overall layout container -->
     <div class="flex flex-col items-center">
         <h1 class="text-3xl font-bold mb-2">Vastu Compass</h1>
         <p class="text-gray-400 mb-6 text-center">Hold your device flat and level to find your Vastu direction.</p>
 
-        <div class="compass-container">
-            <!-- This wrapper rotates to show the correct direction -->
-            <div id="compass-face-wrapper">
-                <canvas id="compassCanvas" class="w-full h-full"></canvas>
-            </div>
-            
-            <!-- Compass Needle - this stays fixed at the top -->
-            <div class="compass-needle-container">
-                <div id="needle">
-                    <div class="needle-red"></div>
-                    <div class="needle-grey"></div>
+        <div class="compass-and-labels-wrapper">
+            <!-- Cardinal Direction Labels -->
+            <div class="cardinal-label n">N</div>
+            <div class="cardinal-label s">S</div>
+            <div class="cardinal-label e">E</div>
+            <div class="cardinal-label w">W</div>
+
+            <!-- Compass Container -->
+            <div class="compass-container">
+                <!-- This wrapper rotates to show the correct direction -->
+                <div id="compass-face-wrapper">
+                    <canvas id="compassCanvas" class="w-full h-full"></canvas>
                 </div>
-                <div class="needle-pivot"></div>
+                
+                <!-- Compass Needle - this stays fixed at the top -->
+                <div class="compass-needle-container">
+                    <div id="needle">
+                        <div class="needle-red"></div>
+                        <div class="needle-grey"></div>
+                    </div>
+                    <div class="needle-pivot"></div>
+                </div>
             </div>
         </div>
 
@@ -181,81 +211,77 @@
 
             let compassRadius;
 
-            // Updated Vastu data for the standard 32 zones
+            // Updated Vastu data and ranges for the 32 zones
             const vastuData = {
                 "N1": { "tips": "New opportunities and career growth.", "deity": "Kubera" },
                 "N2": { "tips": "Wealth and prosperity. Ideal for financial activities.", "deity": "Kubera" },
-                "NNE1": { "tips": "Health and immunity. Keep this area clutter-free.", "deity": "Ashwini Kumaras" },
-                "NNE2": { "tips": "Joy and social connection. Perfect for social areas.", "deity": "Ashwini Kumaras" },
-                "NE1": { "tips": "Meditation and spiritual growth.", "deity": "Lord Shiva" },
-                "NE2": { "tips": "Clarity and new thoughts.", "deity": "Lord Shiva" },
-                "ENE1": { "tips": "Joy and recreation.", "deity": "Indra" },
-                "ENE2": { "tips": "Joy and recreation.", "deity": "Indra" },
-                "E1": { "tips": "Social associations and relationships.", "deity": "Sun" },
-                "E2": { "tips": "Social associations and relationships.", "deity": "Sun" },
-                "ESE1": { "tips": "Mental churning and anxiety.", "deity": "Vivaswan" },
-                "ESE2": { "tips": "Mental churning and anxiety.", "deity": "Vivaswan" },
-                "SE1": { "tips": "Financial liquidity and cash.", "deity": "Agni" },
-                "SE2": { "tips": "Strength and confidence.", "deity": "Indra" },
-                "SSE1": { "tips": "Strength and confidence.", "deity": "Indra" },
-                "SSE2": { "tips": "Strength and confidence.", "deity": "Indra" },
-                "S1": { "tips": "Fame and recognition. Ideal for a bedroom.", "deity": "Yama" },
+                "N3": { "tips": "Growth and flow of new ideas.", "deity": "Varuna" },
+                "N4": { "tips": "Path to success and financial stability.", "deity": "Varuna" },
+                "N5": { "tips": "New thought patterns and clarity.", "deity": "Vishwakarma" },
+                "N6": { "tips": "Knowledge and spiritual development.", "deity": "Vishwakarma" },
+                "N7": { "tips": "Balance and peace of mind.", "deity": "Indra" },
+                "N8": { "tips": "Health and immunity.", "deity": "Indra" },
+                "E1": { "tips": "Social associations and connections.", "deity": "Surya" },
+                "E2": { "tips": "Energy and enthusiasm.", "deity": "Surya" },
+                "E3": { "tips": "Positive interactions and relationships.", "deity": "Vayu" },
+                "E4": { "tips": "Harmony and happiness.", "deity": "Vayu" },
+                "E5": { "tips": "Mental strength and determination.", "deity": "Agni" },
+                "E6": { "tips": "Confidence and passion.", "deity": "Agni" },
+                "E7": { "tips": "Creativity and innovation.", "deity": "Chandra" },
+                "E8": { "tips": "Intuition and emotional balance.", "deity": "Chandra" },
+                "S1": { "tips": "Fame and recognition.", "deity": "Yama" },
                 "S2": { "tips": "Rest and relaxation.", "deity": "Yama" },
-                "SSW1": { "tips": "Expenditure and disposal. Best for a storeroom or toilet.", "deity": "Nirrti" },
-                "SSW2": { "tips": "Waste and disposal.", "deity": "Nirrti" },
-                "SW1": { "tips": "Relationships and bonding.", "deity": "Pitra" },
-                "SW2": { "tips": "Relationships and bonding.", "deity": "Pitra" },
-                "WSW1": { "tips": "Academic growth and savings.", "deity": "Varuna" },
-                "WSW2": { "tips": "Academic growth and savings.", "deity": "Varuna" },
-                "W1": { "tips": "Gains and profits. An excellent zone for business operations.", "deity": "Vishwakarma" },
-                "W2": { "tips": "Gains and profits.", "deity": "Vishwakarma" },
-                "WNW1": { "tips": "Detoxification and release of emotions.", "deity": "Vayu" },
-                "WNW2": { "tips": "Detoxification and release of emotions.", "deity": "Vayu" },
-                "NW1": { "tips": "Financial support and banking.", "deity": "Rudra" },
-                "NW2": { "tips": "Financial support and banking.", "deity": "Rudra" },
-                "NNW1": { "tips": "Attraction and romance.", "deity": "Chandra" },
-                "NNW2": { "tips": "Attraction and romance.", "deity": "Chandra" },
+                "S3": { "tips": "Stability and grounding.", "deity": "Nirrti" },
+                "S4": { "tips": "Strength and power.", "deity": "Nirrti" },
+                "S5": { "tips": "Peace and tranquility.", "deity": "Pitra" },
+                "S6": { "tips": "Support and security.", "deity": "Pitra" },
+                "S7": { "tips": "Dedication and hard work.", "deity": "Rudra" },
+                "S8": { "tips": "Effort and perseverance.", "deity": "Rudra" },
+                "W1": { "tips": "Gains and profits.", "deity": "Vishwakarma" },
+                "W2": { "tips": "Business and career success.", "deity": "Vishwakarma" },
+                "W3": { "tips": "Growth and expansion.", "deity": "Kubera" },
+                "W4": { "tips": "Wealth and financial returns.", "deity": "Kubera" },
+                "W5": { "tips": "Accumulation and savings.", "deity": "Varuna" },
+                "W6": { "tips": "Learning and knowledge.", "deity": "Varuna" },
+                "W7": { "tips": "Mental clarity and wisdom.", "deity": "Indra" },
+                "W8": { "tips": "Wisdom and intelligence.", "deity": "Indra" }
             };
-            
-            // Corrected vastuZones array to start at North (N1-N4) and progress clockwise
-            const vastuZones = [
-                "N1", "N2", 
-                "NNE1", "NNE2",
-                "NE1", "NE2",
-                "ENE1", "ENE2",
-                "E1", "E2",
-                "ESE1", "ESE2",
-                "SE1", "SE2",
-                "SSE1", "SSE2",
-                "S1", "S2",
-                "SSW1", "SSW2",
-                "SW1", "SW2",
-                "WSW1", "WSW2",
-                "W1", "W2",
-                "WNW1", "WNW2",
-                "NW1", "NW2",
-                "NNW1", "NNW2"
+
+            const zoneRanges = [
+                { name: "N4", min: 348.75, max: 360 }, // Special case, also includes 0
+                { name: "N1", min: 315, max: 326.25 },
+                { name: "N2", min: 326.25, max: 337.5 },
+                { name: "N3", min: 337.5, max: 348.75 },
+                { name: "N5", min: 0, max: 11.25 },
+                { name: "N6", min: 11.25, max: 22.5 },
+                { name: "N7", min: 22.5, max: 33.75 },
+                { name: "N8", min: 33.75, max: 45 },
+                { name: "E1", min: 45, max: 56.25 },
+                { name: "E2", min: 56.25, max: 67.5 },
+                { name: "E3", min: 67.5, max: 78.75 },
+                { name: "E4", min: 78.75, max: 90 },
+                { name: "E5", min: 90, max: 101.25 },
+                { name: "E6", min: 101.25, max: 112.5 },
+                { name: "E7", min: 112.5, max: 123.75 },
+                { name: "E8", min: 123.75, max: 135 },
+                { name: "S1", min: 135, max: 146.25 },
+                { name: "S2", min: 146.25, max: 157.5 },
+                { name: "S3", min: 157.5, max: 168.75 },
+                { name: "S4", min: 168.75, max: 180 },
+                { name: "S5", min: 180, max: 191.25 },
+                { name: "S6", min: 191.25, max: 202.5 },
+                { name: "S7", min: 202.5, max: 213.75 },
+                { name: "S8", min: 213.75, max: 225 },
+                { name: "W1", min: 225, max: 236.25 },
+                { name: "W2", min: 236.25, max: 247.5 },
+                { name: "W3", min: 247.5, max: 258.75 },
+                { name: "W4", min: 258.75, max: 270 },
+                { name: "W5", min: 270, max: 281.25 },
+                { name: "W6", min: 281.25, max: 292.5 },
+                { name: "W7", min: 292.5, max: 303.75 },
+                { name: "W8", min: 303.75, max: 315 },
             ];
-
-            const mainVastuLabels = {
-                "N": "N",
-                "NNE": "NNE",
-                "NE": "NE",
-                "ENE": "ENE",
-                "E": "E",
-                "ESE": "ESE",
-                "SE": "SE",
-                "SSE": "SSE",
-                "S": "S",
-                "SSW": "SSW",
-                "SW": "SW",
-                "WSW": "WSW",
-                "W": "W",
-                "WNW": "WNW",
-                "NW": "NW",
-                "NNW": "NNW"
-            };
-
+            
             function resizeCanvas() {
                 const size = Math.min(compassContainer.offsetWidth, compassContainer.offsetHeight);
                 canvas.width = size;
@@ -334,24 +360,26 @@
                     ctx.restore();
                 }
 
-                // Draw 16 primary direction labels
-                const mainDirections = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
-                const mainSectorAngle = 360 / mainDirections.length;
+                // Draw 32 Vastu zone labels
+                const mainSectorAngle = 11.25;
                 
-                const vastuLabelRadius = compassRadius - 90;
-                mainDirections.forEach((sector, index) => {
+                const vastuLabelRadius = compassRadius - 60;
+                const vastuLabels = [
+                    "N5", "N6", "N7", "N8", "E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8",
+                    "S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "W1", "W2", "W3", "W4",
+                    "W5", "W6", "W7", "W8", "N1", "N2", "N3", "N4"
+                ];
+
+                vastuLabels.forEach((sector, index) => {
                     ctx.save();
-                    // Calculate the angle for the center of this sector
-                    const sectorCenterAngle = (index * mainSectorAngle) + (mainSectorAngle / 2);
-                    // Rotate the canvas to the correct position
+                    const sectorCenterAngle = (index * mainSectorAngle);
                     ctx.rotate(sectorCenterAngle * Math.PI / 180);
                     
-                    ctx.font = `1.2rem Inter`;
+                    ctx.font = `0.8rem Inter`;
                     ctx.fillStyle = '#60a5fa';
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
                     
-                    // Draw the label at the top of the canvas, which has now been rotated
                     ctx.fillText(sector, 0, -vastuLabelRadius);
                     ctx.restore();
                 });
@@ -364,12 +392,21 @@
             }
 
             function getDirectionFromAngle(angle) {
-                // Each of the 32 zones is 11.25 degrees wide (360 / 32)
-                const sectorAngle = 11.25; 
-                // The compass starts at N, and we need to offset the angle to map to the correct array index
-                let normalizedAngle = (angle + 360 + 5.625) % 360; // 5.625 is half a sector to center the zones
-                const index = Math.floor(normalizedAngle / sectorAngle);
-                return vastuZones[index];
+                // The angle is from 0-360 clockwise from North.
+                let currentAngle = angle;
+                
+                // Handle the wraparound case for N4
+                if (currentAngle >= 348.75) {
+                    return "N4";
+                }
+
+                // Find the zone by checking against the provided degree ranges
+                for (const zone of zoneRanges) {
+                    if (currentAngle >= zone.min && currentAngle < zone.max) {
+                        return zone.name;
+                    }
+                }
+                return "Unknown";
             }
 
             function updateVastuTips(direction) {
@@ -390,9 +427,9 @@
                 if (event.webkitCompassHeading !== undefined) {
                     alpha = event.webkitCompassHeading;
                 }
+                
                 const direction = getDirectionFromAngle(alpha);
                 
-                // Rotate the compass face itself, not the needle
                 compassFaceWrapper.style.transform = `rotate(${-alpha}deg)`;
                 
                 angleDisplay.textContent = `${Math.round(alpha)}°`;
@@ -408,7 +445,7 @@
                                 window.addEventListener('deviceorientation', handleOrientation);
                                 messageBox.innerHTML = '<p>Device access granted. Rotate your device to use the compass.</p>';
                                 permissionButton.style.display = 'none';
-                                updateVastuTips("N1");
+                                updateVastuTips("N4");
                             } else {
                                 messageBox.innerHTML = '<p>Permission denied. The compass will not work.</p>';
                             }
@@ -418,7 +455,7 @@
                     window.addEventListener('deviceorientation', handleOrientation);
                     messageBox.innerHTML = '<p>Ready! Rotate your device to use the compass.</p>';
                     permissionButton.style.display = 'none';
-                    updateVastuTips("N1");
+                                updateVastuTips("N4");
                 }
             }
 
