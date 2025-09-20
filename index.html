@@ -184,25 +184,19 @@
             // Updated Vastu data for the standard 32 zones
             const vastuData = {
                 "N1": { "tips": "New opportunities and career growth.", "deity": "Kubera" },
-                "N2": { "tips": "New opportunities and career growth.", "deity": "Kubera" },
-                "N3": { "tips": "Increased profits and business growth.", "deity": "Aditi" },
-                "N4": { "tips": "Increased profits and business growth.", "deity": "Diti" },
-                "N5": { "tips": "Financial liquidity and cash.", "deity": "Agni" },
-                "N6": { "tips": "Strength and confidence.", "deity": "Indra" },
-                "N7": { "tips": "Mental churning and anxiety.", "deity": "Vivaswan" },
-                "N8": { "tips": "Mental churning and anxiety.", "deity": "Vivaswan" },
-                "NNE1": { "tips": "Health and immunity zone. Keep this area clutter-free.", "deity": "Ashwini Kumaras" },
-                "NNE2": { "tips": "Health and immunity zone. Keep this area clutter-free.", "deity": "Ashwini Kumaras" },
+                "N2": { "tips": "Wealth and prosperity. Ideal for financial activities.", "deity": "Kubera" },
+                "NNE1": { "tips": "Health and immunity. Keep this area clutter-free.", "deity": "Ashwini Kumaras" },
+                "NNE2": { "tips": "Joy and social connection. Perfect for social areas.", "deity": "Ashwini Kumaras" },
                 "NE1": { "tips": "Meditation and spiritual growth.", "deity": "Lord Shiva" },
                 "NE2": { "tips": "Clarity and new thoughts.", "deity": "Lord Shiva" },
-                "ENE1": { "tips": "Joy and social activity.", "deity": "Indra" },
-                "ENE2": { "tips": "Joy and social activity.", "deity": "Indra" },
-                "E1": { "tips": "Social associations.", "deity": "Sun" },
-                "E2": { "tips": "Social associations.", "deity": "Sun" },
+                "ENE1": { "tips": "Joy and recreation.", "deity": "Indra" },
+                "ENE2": { "tips": "Joy and recreation.", "deity": "Indra" },
+                "E1": { "tips": "Social associations and relationships.", "deity": "Sun" },
+                "E2": { "tips": "Social associations and relationships.", "deity": "Sun" },
                 "ESE1": { "tips": "Mental churning and anxiety.", "deity": "Vivaswan" },
                 "ESE2": { "tips": "Mental churning and anxiety.", "deity": "Vivaswan" },
                 "SE1": { "tips": "Financial liquidity and cash.", "deity": "Agni" },
-                "SE2": { "tips": "Financial liquidity and cash.", "deity": "Agni" },
+                "SE2": { "tips": "Strength and confidence.", "deity": "Indra" },
                 "SSE1": { "tips": "Strength and confidence.", "deity": "Indra" },
                 "SSE2": { "tips": "Strength and confidence.", "deity": "Indra" },
                 "S1": { "tips": "Fame and recognition. Ideal for a bedroom.", "deity": "Yama" },
@@ -223,9 +217,9 @@
                 "NNW2": { "tips": "Attraction and romance.", "deity": "Chandra" },
             };
             
-            // Corrected vastuZones array, ordered with N5 at 0 degrees and N1 at the requested range.
+            // Corrected vastuZones array to start at North (N1-N4) and progress clockwise
             const vastuZones = [
-                "N5", "N6", "N7", "N8",
+                "N1", "N2", 
                 "NNE1", "NNE2",
                 "NE1", "NE2",
                 "ENE1", "ENE2",
@@ -240,27 +234,26 @@
                 "W1", "W2",
                 "WNW1", "WNW2",
                 "NW1", "NW2",
-                "NNW1", "NNW2",
-                "N1", "N2", "N3", "N4"
+                "NNW1", "NNW2"
             ];
 
             const mainVastuLabels = {
-                "N": "N", "N1": "N", "N2": "N", "N3": "N", "N4": "N", "N5": "N", "N6": "N", "N7": "N", "N8": "N",
-                "NNE": "NNE", "NNE1": "NNE", "NNE2": "NNE",
-                "NE": "NE", "NE1": "NE", "NE2": "NE",
-                "ENE": "ENE", "ENE1": "ENE", "ENE2": "ENE",
-                "E": "E", "E1": "E", "E2": "E",
-                "ESE": "ESE", "ESE1": "ESE", "ESE2": "ESE",
-                "SE": "SE", "SE1": "SE", "SE2": "SE",
-                "SSE": "SSE", "SSE1": "SSE", "SSE2": "SSE",
-                "S": "S", "S1": "S", "S2": "S",
-                "SSW": "SSW", "SSW1": "SSW", "SSW2": "SSW",
-                "SW": "SW", "SW1": "SW", "SW2": "SW",
-                "WSW": "WSW", "WSW1": "WSW", "WSW2": "WSW",
-                "W": "W", "W1": "W", "W2": "W",
-                "WNW": "WNW", "WNW1": "WNW", "WNW2": "WNW",
-                "NW": "NW", "NW1": "NW", "NW2": "NW",
-                "NNW": "NNW", "NNW1": "NNW", "NNW2": "NNW"
+                "N": "N",
+                "NNE": "NNE",
+                "NE": "NE",
+                "ENE": "ENE",
+                "E": "E",
+                "ESE": "ESE",
+                "SE": "SE",
+                "SSE": "SSE",
+                "S": "S",
+                "SSW": "SSW",
+                "SW": "SW",
+                "WSW": "WSW",
+                "W": "W",
+                "WNW": "WNW",
+                "NW": "NW",
+                "NNW": "NNW"
             };
 
             function resizeCanvas() {
@@ -348,12 +341,17 @@
                 const vastuLabelRadius = compassRadius - 90;
                 mainDirections.forEach((sector, index) => {
                     ctx.save();
-                    const textAngle = (index * mainSectorAngle + mainSectorAngle/2) * Math.PI / 180;
-                    ctx.rotate(textAngle - Math.PI / 2);
+                    // Calculate the angle for the center of this sector
+                    const sectorCenterAngle = (index * mainSectorAngle) + (mainSectorAngle / 2);
+                    // Rotate the canvas to the correct position
+                    ctx.rotate(sectorCenterAngle * Math.PI / 180);
                     
                     ctx.font = `1.2rem Inter`;
                     ctx.fillStyle = '#60a5fa';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
                     
+                    // Draw the label at the top of the canvas, which has now been rotated
                     ctx.fillText(sector, 0, -vastuLabelRadius);
                     ctx.restore();
                 });
@@ -410,7 +408,7 @@
                                 window.addEventListener('deviceorientation', handleOrientation);
                                 messageBox.innerHTML = '<p>Device access granted. Rotate your device to use the compass.</p>';
                                 permissionButton.style.display = 'none';
-                                updateVastuTips("N5");
+                                updateVastuTips("N1");
                             } else {
                                 messageBox.innerHTML = '<p>Permission denied. The compass will not work.</p>';
                             }
@@ -420,7 +418,7 @@
                     window.addEventListener('deviceorientation', handleOrientation);
                     messageBox.innerHTML = '<p>Ready! Rotate your device to use the compass.</p>';
                     permissionButton.style.display = 'none';
-                    updateVastuTips("N5");
+                    updateVastuTips("N1");
                 }
             }
 
