@@ -54,13 +54,28 @@
             height: 100%;
             transition: transform 0.1s ease-out;
         }
-
+        
+        /* The compass canvas and the NSEW labels are now inside the rotating wrapper */
         #compassCanvas {
             position: absolute;
             top: 0;
             left: 0;
             z-index: 1;
         }
+
+        .cardinal-label {
+            position: absolute;
+            font-size: 1.2rem;
+            font-weight: 700;
+            z-index: 3;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+        }
+        /* These positions are now relative to the compass-face-wrapper */
+        .cardinal-label.n { top: 1rem; left: 50%; transform: translateX(-50%); color: #ef4444; }
+        .cardinal-label.s { bottom: 1rem; left: 50%; transform: translateX(-50%); }
+        .cardinal-label.e { right: 1rem; top: 50%; transform: translateY(-50%); }
+        .cardinal-label.w { left: 1rem; top: 50%; transform: translateY(-50%); }
+
 
         /* The needle container is now static, with the needle pointing "up" */
         .compass-needle-container {
@@ -124,19 +139,6 @@
         .info-box h2 {
             color: #3b82f6;
         }
-
-        .cardinal-label {
-            position: absolute;
-            font-size: 1.2rem;
-            font-weight: 700;
-            z-index: 3;
-            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
-        }
-
-        .cardinal-label.n { top: -2rem; left: 50%; transform: translateX(-50%); color: #ef4444; }
-        .cardinal-label.s { bottom: -2rem; left: 50%; transform: translateX(-50%); }
-        .cardinal-label.e { right: -2rem; top: 50%; transform: translateY(-50%); }
-        .cardinal-label.w { left: -2rem; top: 50%; transform: translateY(-50%); }
     </style>
 </head>
 
@@ -148,17 +150,16 @@
         <p class="text-gray-400 mb-6 text-center">Hold your device flat and level to find your Vastu direction.</p>
 
         <div class="compass-and-labels-wrapper">
-            <!-- Cardinal Direction Labels -->
-            <div class="cardinal-label n">N</div>
-            <div class="cardinal-label s">S</div>
-            <div class="cardinal-label e">E</div>
-            <div class="cardinal-label w">W</div>
-
             <!-- Compass Container -->
             <div class="compass-container">
                 <!-- This wrapper now rotates to show the correct direction -->
                 <div id="compass-face-wrapper">
                     <canvas id="compassCanvas" class="w-full h-full"></canvas>
+                    <!-- Cardinal Direction Labels - now inside the rotating wrapper -->
+                    <div class="cardinal-label n">N</div>
+                    <div class="cardinal-label s">S</div>
+                    <div class="cardinal-label e">E</div>
+                    <div class="cardinal-label w">W</div>
                 </div>
                 
                 <!-- Compass Needle - this stays fixed at the top -->
