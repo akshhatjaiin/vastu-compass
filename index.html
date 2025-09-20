@@ -13,40 +13,29 @@
             background: linear-gradient(135deg, #1f2937 0%, #0f172a 100%);
             color: #e2e8f0;
             touch-action: none;
-        }
-
-        .main-container {
             display: flex;
             flex-direction: column;
+            justify-content: center;
             align-items: center;
-            justify-content: space-between;
             min-height: 100vh;
-            width: 100%;
             padding: 1rem;
-            box-sizing: border-box;
-        }
-
-        .header-content {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 1.5rem;
+            overflow: hidden;
         }
 
         .compass-and-labels-wrapper {
             position: relative;
-            /* Use a flexible basis and grow to fill vertical space */
-            width: 100%;
-            padding-top: 100%; /* Maintain 1:1 aspect ratio */
+            width: 90vmin;
+            height: 90vmin;
             max-width: 32rem;
-            flex-grow: 1; 
+            max-height: 32rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 2rem;
         }
 
         .compass-container {
-            position: absolute;
-            top: 0;
-            left: 0;
+            position: relative;
             width: 100%;
             height: 100%;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 0 10px rgba(255, 255, 255, 0.1);
@@ -56,6 +45,7 @@
             overflow: hidden;
         }
 
+        /* This wrapper will now rotate based on device orientation */
         #compass-face-wrapper {
             position: absolute;
             top: 0;
@@ -65,6 +55,7 @@
             transition: transform 0.1s ease-out;
         }
         
+        /* The compass canvas and the NSEW labels are now inside the rotating wrapper */
         #compassCanvas {
             position: absolute;
             top: 0;
@@ -74,16 +65,19 @@
 
         .cardinal-label {
             position: absolute;
+            font-size: 1.2rem;
             font-weight: 700;
             z-index: 3;
             text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
-            font-size: 5vmin; /* Use vmin for responsive font size */
         }
+        /* These positions are now relative to the compass-face-wrapper */
         .cardinal-label.n { top: 1rem; left: 50%; transform: translateX(-50%); color: #ef4444; }
         .cardinal-label.s { bottom: 1rem; left: 50%; transform: translateX(-50%); }
         .cardinal-label.e { right: 1rem; top: 50%; transform: translateY(-50%); }
         .cardinal-label.w { left: 1rem; top: 50%; transform: translateY(-50%); }
 
+
+        /* The needle container is now static, with the needle pointing "up" */
         .compass-needle-container {
             position: absolute;
             width: 100%;
@@ -139,7 +133,7 @@
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
             width: 100%;
             max-width: 32rem;
-            margin-top: 1.5rem;
+            margin-top: 2rem;
         }
 
         .info-box h2 {
@@ -148,25 +142,27 @@
     </style>
 </head>
 
-<body>
+<body class="bg-gray-900 flex flex-col items-center justify-center min-h-screen text-gray-200 p-4">
 
-    <div class="main-container">
-        <!-- Header -->
-        <div class="header-content">
-            <h1 class="text-3xl font-bold">Vastu Compass</h1>
-            <p class="text-gray-400 text-center">Hold your device flat and level to find your Vastu direction.</p>
-        </div>
-    
-        <!-- Compass and Labels -->
+    <!-- Overall layout container -->
+    <div class="flex flex-col items-center">
+        <h1 class="text-3xl font-bold mb-2">Vastu Compass</h1>
+        <p class="text-gray-400 mb-6 text-center">Hold your device flat and level to find your Vastu direction.</p>
+
         <div class="compass-and-labels-wrapper">
+            <!-- Compass Container -->
             <div class="compass-container">
+                <!-- This wrapper now rotates to show the correct direction -->
                 <div id="compass-face-wrapper">
                     <canvas id="compassCanvas" class="w-full h-full"></canvas>
+                    <!-- Cardinal Direction Labels - now inside the rotating wrapper -->
                     <div class="cardinal-label n">N</div>
                     <div class="cardinal-label s">S</div>
                     <div class="cardinal-label e">E</div>
                     <div class="cardinal-label w">W</div>
                 </div>
+                
+                <!-- Compass Needle - this stays fixed at the top -->
                 <div class="compass-needle-container">
                     <div id="needle">
                         <div class="needle-red"></div>
@@ -176,8 +172,8 @@
                 </div>
             </div>
         </div>
-    
-        <!-- Info Box -->
+
+        <!-- Direction and Vastu Info Display -->
         <div class="info-box">
             <div class="text-center mb-4">
                 <h2 class="text-4xl font-extrabold" id="angle-display">--°</h2>
@@ -190,15 +186,15 @@
                 </div>
             </div>
         </div>
-    
-        <!-- Message Box -->
-        <div id="message-box-container" class="mt-4">
-            <div id="message-box" class="p-4 bg-gray-800 border border-gray-700 text-gray-400 rounded-lg text-sm transition-opacity duration-300 text-center">
+
+        <!-- Message/Status Display -->
+        <div id="message-box-container" class="mt-6">
+            <div id="message-box" class="p-4 bg-gray-800 border border-gray-700 text-gray-400 rounded-lg text-sm transition-opacity duration-300 max-w-sm text-center">
                 <p>Please grant permission to use the device sensor.</p>
             </div>
         </div>
-    
-        <!-- Permission Button -->
+
+        <!-- Permission Button (iOS 13+) -->
         <button id="permission-button" class="mt-4 px-6 py-3 bg-blue-600 text-white font-semibold rounded-full shadow-lg hover:bg-blue-700 transition-colors duration-300">
             Allow Access
         </button>
@@ -219,6 +215,7 @@
 
             let compassRadius;
 
+            // Vastu data parsed from the user's CSV file
             const vastuData = {
                 "N1": { "Direction": "NNW", "Element": "Water", "Colors": "Blue" },
                 "N2": { "Direction": "NNW", "Element": "Water", "Colors": "Blue" },
@@ -321,20 +318,22 @@
                 ctx.save();
                 ctx.translate(compassRadius, compassRadius);
 
+                // --- Draw the 32 sector division lines ---
                 ctx.save();
-                ctx.strokeStyle = '#60a5fa';
+                ctx.strokeStyle = '#60a5fa'; /* Brighter lines for main vastu zones */
                 ctx.lineWidth = 1;
                 for (let i = 0; i < 360; i += 11.25) {
                     ctx.save();
                     ctx.rotate(i * Math.PI / 180);
                     ctx.beginPath();
-                    ctx.moveTo(0, 0);
-                    ctx.lineTo(0, -compassRadius);
+                    ctx.moveTo(0, 0); // Start from the center
+                    ctx.lineTo(0, -compassRadius); // Draw line to the edge
                     ctx.stroke();
                     ctx.restore();
                 }
                 ctx.restore();
                 
+                // Draw 1-degree markings
                 ctx.strokeStyle = '#cbd5e1'; 
                 ctx.lineWidth = 0.5;
                 const innerMarkRadiusOne = compassRadius - 5;
@@ -349,6 +348,7 @@
                     ctx.restore();
                 }
 
+                // Draw sub-degree markings (5-degree intervals)
                 ctx.strokeStyle = '#94a3b8'; 
                 ctx.lineWidth = 1.5;
                 const innerMarkRadius = compassRadius - 20;
@@ -363,7 +363,8 @@
                     ctx.restore();
                 }
 
-                ctx.font = `${(compassRadius * 0.07)}px Inter`;
+                // Draw degree numbers and longer marks for 10-degree intervals
+                ctx.font = '0.9rem Inter';
                 ctx.fillStyle = '#e2e8f0';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
@@ -382,6 +383,7 @@
                     ctx.restore();
                 }
 
+                // Draw 32 Vastu zone labels
                 const mainSectorAngle = 11.25;
                 
                 const vastuLabelRadius = compassRadius - 60;
@@ -396,7 +398,7 @@
                     const sectorCenterAngle = (index * mainSectorAngle);
                     ctx.rotate(sectorCenterAngle * Math.PI / 180);
                     
-                    ctx.font = `${(compassRadius * 0.06)}px Inter`;
+                    ctx.font = `0.8rem Inter`;
                     ctx.fillStyle = '#60a5fa';
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
@@ -415,6 +417,7 @@
             function getVastuDirectionFromAngle(angle) {
                 let currentAngle = angle;
                 
+                // Handle the wraparound case for N4
                 if (currentAngle >= 348.75) {
                     return "N4";
                 }
@@ -429,7 +432,7 @@
             
             function getTraditionalDirectionFromAngle(angle) {
                 for (const direction of traditionalDirections) {
-                    if (direction.name === "N") {
+                    if (direction.name === "N") { // Special case for North
                         if (angle >= direction.min || angle < direction.max) {
                             return direction.name;
                         }
@@ -463,11 +466,12 @@
                 const vastuDirection = getVastuDirectionFromAngle(alpha);
                 const traditionalDirection = getTraditionalDirectionFromAngle(alpha);
                 
+                // This is the key fix: rotate the entire compass face
                 compassFaceWrapper.style.transform = `rotate(${-alpha}deg)`;
                 
                 angleDisplay.textContent = `${Math.round(alpha)}°`;
-                vastuDirectionName.textContent = traditionalDirection;
                 vastuDirectionName.textContent = vastuDirection;
+                traditionalDirectionName.textContent = traditionalDirection;
                 updateVastuTips(vastuDirection);
             }
 
