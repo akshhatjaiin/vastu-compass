@@ -177,7 +177,7 @@
         <div class="info-box">
             <div class="text-center mb-4">
                 <h2 class="text-4xl font-extrabold" id="angle-display">--°</h2>
-                <p class="text-xl text-gray-400" id="direction-name">Calibrating...</p>
+                <p class="text-xl text-gray-400"><span id="traditional-direction-name">Calibrating...</span> (<span id="vastu-direction-name">--</span>)</p>
             </div>
             <div id="vastu-tips" class="text-sm">
                 <h3 class="font-semibold text-lg text-blue-300 mb-2">Vastu Tips for this Direction</h3>
@@ -203,7 +203,8 @@
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             const permissionButton = document.getElementById('permission-button');
-            const directionName = document.getElementById('direction-name');
+            const traditionalDirectionName = document.getElementById('traditional-direction-name');
+            const vastuDirectionName = document.getElementById('vastu-direction-name');
             const angleDisplay = document.getElementById('angle-display');
             const vastuTips = document.getElementById('vastu-content');
             const messageBox = document.getElementById('message-box');
@@ -250,7 +251,7 @@
                 "W8": { "tips": "Wisdom and intelligence.", "deity": "Indra" }
             };
 
-            const zoneRanges = [
+            const vastuZoneRanges = [
                 { name: "N4", min: 348.75, max: 360 }, // Special case, also includes 0
                 { name: "N1", min: 315, max: 326.25 },
                 { name: "N2", min: 326.25, max: 337.5 },
@@ -283,6 +284,25 @@
                 { name: "W6", min: 281.25, max: 292.5 },
                 { name: "W7", min: 292.5, max: 303.75 },
                 { name: "W8", min: 303.75, max: 315 },
+            ];
+
+            const traditionalDirections = [
+                { name: "N", min: 348.75, max: 11.25 },
+                { name: "NNE", min: 11.25, max: 33.75 },
+                { name: "NE", min: 33.75, max: 56.25 },
+                { name: "ENE", min: 56.25, max: 78.75 },
+                { name: "E", min: 78.75, max: 101.25 },
+                { name: "ESE", min: 101.25, max: 123.75 },
+                { name: "SE", min: 123.75, max: 146.25 },
+                { name: "SSE", min: 146.25, max: 168.75 },
+                { name: "S", min: 168.75, max: 191.25 },
+                { name: "SSW", min: 191.25, max: 213.75 },
+                { name: "SW", min: 213.75, max: 236.25 },
+                { name: "WSW", min: 236.25, max: 258.75 },
+                { name: "W", min: 258.75, max: 281.25 },
+                { name: "WNW", min: 281.25, max: 303.75 },
+                { name: "NW", min: 303.75, max: 326.25 },
+                { name: "NNW", min: 326.25, max: 348.75 }
             ];
             
             function resizeCanvas() {
@@ -394,8 +414,7 @@
                 ctx.restore();
             }
 
-            function getDirectionFromAngle(angle) {
-                // The angle is from 0-360 clockwise from North.
+            function getVastuDirectionFromAngle(angle) {
                 let currentAngle = angle;
                 
                 // Handle the wraparound case for N4
@@ -403,14 +422,27 @@
                     return "N4";
                 }
 
-                // Find the zone by checking against the provided degree ranges
-                for (const zone of zoneRanges) {
+                for (const zone of vastuZoneRanges) {
                     if (currentAngle >= zone.min && currentAngle < zone.max) {
                         return zone.name;
                     }
                 }
                 return "Unknown";
             }
+            
+            function getTraditionalDirectionFromAngle(angle) {
+                for (const direction of traditionalDirections) {
+                    if (direction.name === "N") { // Special case for North
+                        if (angle >= direction.min || angle < direction.max) {
+                            return direction.name;
+                        }
+                    } else if (angle >= direction.min && angle < direction.max) {
+                        return direction.name;
+                    }
+                }
+                return "Unknown";
+            }
+
 
             function updateVastuTips(direction) {
                 const data = vastuData[direction];
@@ -431,14 +463,16 @@
                     alpha = event.webkitCompassHeading;
                 }
                 
-                const direction = getDirectionFromAngle(alpha);
+                const vastuDirection = getVastuDirectionFromAngle(alpha);
+                const traditionalDirection = getTraditionalDirectionFromAngle(alpha);
                 
                 // This is the key fix: rotate the entire compass face
                 compassFaceWrapper.style.transform = `rotate(${-alpha}deg)`;
                 
                 angleDisplay.textContent = `${Math.round(alpha)}°`;
-                directionName.textContent = direction;
-                updateVastuTips(direction);
+                vastuDirectionName.textContent = vastuDirection;
+                traditionalDirectionName.textContent = traditionalDirection;
+                updateVastuTips(vastuDirection);
             }
 
             function requestPermission() {
