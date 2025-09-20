@@ -13,6 +13,7 @@
             background: linear-gradient(135deg, #1f2937 0%, #0f172a 100%);
             color: #e2e8f0;
             touch-action: none;
+            /* Prevent touch actions like zooming or panning */
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -35,11 +36,21 @@
             border: 4px solid #4a5568;
             margin-bottom: 2rem;
         }
+        
+        #compass-face-wrapper {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.1s ease-out;
+        }
 
         #compassCanvas {
             position: absolute;
             top: 0;
             left: 0;
+            z-index: 1;
         }
 
         .compass-needle-container {
@@ -51,13 +62,13 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            z-index: 2; /* Ensure the needle is always on top */
         }
         
         #needle {
             position: absolute;
             width: 1.5rem;
             height: 90%;
-            transition: transform 0.1s ease-out;
             transform-origin: center center;
             display: flex;
             flex-direction: column;
@@ -114,9 +125,12 @@
         <p class="text-gray-400 mb-6 text-center">Hold your device flat and level to find your Vastu direction.</p>
 
         <div class="compass-container">
-            <canvas id="compassCanvas" class="w-full h-full"></canvas>
-
-            <!-- Compass Needle -->
+            <!-- This wrapper rotates to show the correct direction -->
+            <div id="compass-face-wrapper">
+                <canvas id="compassCanvas" class="w-full h-full"></canvas>
+            </div>
+            
+            <!-- Compass Needle - this stays fixed at the top -->
             <div class="compass-needle-container">
                 <div id="needle">
                     <div class="needle-red"></div>
@@ -161,70 +175,75 @@
             const vastuTips = document.getElementById('vastu-content');
             const messageBox = document.getElementById('message-box');
             const canvas = document.getElementById('compassCanvas');
+            const compassFaceWrapper = document.getElementById('compass-face-wrapper');
             const ctx = canvas.getContext('2d');
             const compassContainer = document.querySelector('.compass-container');
 
             let compassRadius;
 
-            // Updated vastuData with 32 zones (N1-N8, NE1-NE2, etc.)
+            // Updated Vastu data for the standard 32 zones
             const vastuData = {
-                "N": { "tips": "Water, new opportunities, money. Ideal for entrances.", "deity": "Kubera" },
-                "N1": { "tips": "Money opportunities and flow of wealth.", "deity": "Kubera" },
-                "N2": { "tips": "Money opportunities and flow of wealth.", "deity": "Kubera" },
-                "N3": { "tips": "Increased profits and business growth.", "deity": "Diti" },
-                "N4": { "tips": "Increased profits and business growth.", "deity": "Aditi" },
-                "N5": { "tips": "Social connections and support.", "deity": "Diti" },
-                "N6": { "tips": "Social connections and support.", "deity": "Aditi" },
-                "N7": { "tips": "New opportunities and career growth.", "deity": "Kubera" },
-                "N8": { "tips": "New opportunities and career growth.", "deity": "Kubera" },
-                "NNE": { "tips": "Health and immunity zone. Keep this area clutter-free.", "deity": "Ashwini Kumaras" },
-                "NNE1": { "tips": "Health and wellness zone.", "deity": "Ashwini Kumaras" },
-                "NNE2": { "tips": "Health and wellness zone.", "deity": "Ashwini Kumaras" },
-                "NE": { "tips": "Clarity, meditation, and wisdom. Ideal for a puja room or study.", "deity": "Lord Shiva" },
+                "N1": { "tips": "New opportunities and career growth.", "deity": "Kubera" },
+                "N2": { "tips": "New opportunities and career growth.", "deity": "Kubera" },
+                "N3": { "tips": "Increased profits and business growth.", "deity": "Aditi" },
+                "N4": { "tips": "Increased profits and business growth.", "deity": "Diti" },
+                "N5": { "tips": "Financial liquidity and cash.", "deity": "Agni" },
+                "N6": { "tips": "Strength and confidence.", "deity": "Indra" },
+                "N7": { "tips": "Mental churning and anxiety.", "deity": "Vivaswan" },
+                "N8": { "tips": "Mental churning and anxiety.", "deity": "Vivaswan" },
+                "NNE1": { "tips": "Health and immunity zone. Keep this area clutter-free.", "deity": "Ashwini Kumaras" },
+                "NNE2": { "tips": "Health and immunity zone. Keep this area clutter-free.", "deity": "Ashwini Kumaras" },
                 "NE1": { "tips": "Meditation and spiritual growth.", "deity": "Lord Shiva" },
                 "NE2": { "tips": "Clarity and new thoughts.", "deity": "Lord Shiva" },
-                "ENE": { "tips": "Recreation and enjoyment. Good for a living room.", "deity": "Indra" },
                 "ENE1": { "tips": "Joy and social activity.", "deity": "Indra" },
                 "ENE2": { "tips": "Joy and social activity.", "deity": "Indra" },
-                "E": { "tips": "Social associations. Ideal for a drawing room or dining area.", "deity": "Sun" },
                 "E1": { "tips": "Social associations.", "deity": "Sun" },
                 "E2": { "tips": "Social associations.", "deity": "Sun" },
-                "ESE": { "tips": "Anxiety and churning. Avoid main entrances here.", "deity": "Vivaswan" },
                 "ESE1": { "tips": "Mental churning and anxiety.", "deity": "Vivaswan" },
                 "ESE2": { "tips": "Mental churning and anxiety.", "deity": "Vivaswan" },
-                "SE": { "tips": "Cash and liquidity. Best for the kitchen.", "deity": "Agni" },
                 "SE1": { "tips": "Financial liquidity and cash.", "deity": "Agni" },
                 "SE2": { "tips": "Financial liquidity and cash.", "deity": "Agni" },
-                "SSE": { "tips": "Confidence and power. Good for a study or home office.", "deity": "Indra" },
                 "SSE1": { "tips": "Strength and confidence.", "deity": "Indra" },
                 "SSE2": { "tips": "Strength and confidence.", "deity": "Indra" },
-                "S": { "tips": "Fame and recognition. Ideal for a bedroom.", "deity": "Yama" },
-                "S1": { "tips": "Rest and relaxation.", "deity": "Yama" },
+                "S1": { "tips": "Fame and recognition. Ideal for a bedroom.", "deity": "Yama" },
                 "S2": { "tips": "Rest and relaxation.", "deity": "Yama" },
-                "SSW": { "tips": "Expenditure and disposal. Best for a storeroom or toilet.", "deity": "Nirrti" },
-                "SSW1": { "tips": "Waste and disposal.", "deity": "Nirrti" },
+                "SSW1": { "tips": "Expenditure and disposal. Best for a storeroom or toilet.", "deity": "Nirrti" },
                 "SSW2": { "tips": "Waste and disposal.", "deity": "Nirrti" },
-                "SW": { "tips": "Relationships and skills. Ideal for a master bedroom.", "deity": "Pitra" },
                 "SW1": { "tips": "Relationships and bonding.", "deity": "Pitra" },
                 "SW2": { "tips": "Relationships and bonding.", "deity": "Pitra" },
-                "WSW": { "tips": "Education and savings. A good zone for a study.", "deity": "Varuna" },
                 "WSW1": { "tips": "Academic growth and savings.", "deity": "Varuna" },
                 "WSW2": { "tips": "Academic growth and savings.", "deity": "Varuna" },
-                "W": { "tips": "Gains and profits. An excellent zone for business operations.", "deity": "Vishwakarma" },
-                "W1": { "tips": "Gains and profits.", "deity": "Vishwakarma" },
+                "W1": { "tips": "Gains and profits. An excellent zone for business operations.", "deity": "Vishwakarma" },
                 "W2": { "tips": "Gains and profits.", "deity": "Vishwakarma" },
-                "WNW": { "tips": "Depression and detoxification. Avoid living spaces here.", "deity": "Vayu" },
                 "WNW1": { "tips": "Detoxification and release of emotions.", "deity": "Vayu" },
                 "WNW2": { "tips": "Detoxification and release of emotions.", "deity": "Vayu" },
-                "NW": { "tips": "Support and banking. Best for guest rooms.", "deity": "Rudra" },
                 "NW1": { "tips": "Financial support and banking.", "deity": "Rudra" },
                 "NW2": { "tips": "Financial support and banking.", "deity": "Rudra" },
-                "NNW": { "tips": "Sex and attraction. Good for a couple's bedroom.", "deity": "Chandra" },
                 "NNW1": { "tips": "Attraction and romance.", "deity": "Chandra" },
                 "NNW2": { "tips": "Attraction and romance.", "deity": "Chandra" },
             };
             
-            // Map the 32 zones to their corresponding 16 main labels for drawing
+            // Corrected vastuZones array, ordered with N5 at 0 degrees and N1 at the requested range.
+            const vastuZones = [
+                "N5", "N6", "N7", "N8",
+                "NNE1", "NNE2",
+                "NE1", "NE2",
+                "ENE1", "ENE2",
+                "E1", "E2",
+                "ESE1", "ESE2",
+                "SE1", "SE2",
+                "SSE1", "SSE2",
+                "S1", "S2",
+                "SSW1", "SSW2",
+                "SW1", "SW2",
+                "WSW1", "WSW2",
+                "W1", "W2",
+                "WNW1", "WNW2",
+                "NW1", "NW2",
+                "NNW1", "NNW2",
+                "N1", "N2", "N3", "N4"
+            ];
+
             const mainVastuLabels = {
                 "N": "N", "N1": "N", "N2": "N", "N3": "N", "N4": "N", "N5": "N", "N6": "N", "N7": "N", "N8": "N",
                 "NNE": "NNE", "NNE1": "NNE", "NNE2": "NNE",
@@ -252,7 +271,7 @@
                 drawCompassFace();
             }
 
-            function drawCompassFace(currentDirection = null) {
+            function drawCompassFace() {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.save();
                 ctx.translate(compassRadius, compassRadius);
@@ -272,8 +291,8 @@
                 }
                 ctx.restore();
                 
-                // Draw 1-degree markings (new addition)
-                ctx.strokeStyle = '#cbd5e1'; /* Much lighter for visibility */
+                // Draw 1-degree markings
+                ctx.strokeStyle = '#cbd5e1'; 
                 ctx.lineWidth = 0.5;
                 const innerMarkRadiusOne = compassRadius - 5;
                 const outerMarkRadiusOne = compassRadius - 10;
@@ -288,7 +307,7 @@
                 }
 
                 // Draw sub-degree markings (5-degree intervals)
-                ctx.strokeStyle = '#94a3b8'; /* Lighter color */
+                ctx.strokeStyle = '#94a3b8'; 
                 ctx.lineWidth = 1.5;
                 const innerMarkRadius = compassRadius - 20;
                 const outerMarkRadius = compassRadius - 10;
@@ -308,7 +327,7 @@
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 const degreeTextRadius = compassRadius - 30; 
-                ctx.lineWidth = 3; /* Increased line width */
+                ctx.lineWidth = 3; 
                 for (let i = 0; i < 360; i += 10) {
                     ctx.save();
                     ctx.rotate(i * Math.PI / 180);
@@ -322,7 +341,7 @@
                     ctx.restore();
                 }
 
-                // Draw 16 primary direction labels (no more clutter!)
+                // Draw 16 primary direction labels
                 const mainDirections = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
                 const mainSectorAngle = 360 / mainDirections.length;
                 
@@ -347,21 +366,25 @@
             }
 
             function getDirectionFromAngle(angle) {
-                const sectors = Object.keys(vastuData);
-                const sectorAngle = 11.25;
-                let normalizedAngle = (angle + 360 - sectorAngle / 2) % 360;
-                if (normalizedAngle < 0) normalizedAngle += 360;
+                // Each of the 32 zones is 11.25 degrees wide (360 / 32)
+                const sectorAngle = 11.25; 
+                // The compass starts at N, and we need to offset the angle to map to the correct array index
+                let normalizedAngle = (angle + 360 + 5.625) % 360; // 5.625 is half a sector to center the zones
                 const index = Math.floor(normalizedAngle / sectorAngle);
-                return sectors[index];
+                return vastuZones[index];
             }
 
             function updateVastuTips(direction) {
                 const data = vastuData[direction];
-                vastuTips.innerHTML = `
-                    <h3 class="font-semibold text-lg text-blue-300">Vastu Tips for <span class="text-red-400 font-bold">${direction}</span></h3>
-                    <p class="text-gray-300"><strong>Tips:</strong> ${data.tips}</p>
-                    <p class="text-gray-300"><strong>Deity:</strong> ${data.deity}</p>
-                `;
+                if (data) {
+                    vastuTips.innerHTML = `
+                        <h3 class="font-semibold text-lg text-blue-300">Vastu Tips for <span class="text-red-400 font-bold">${direction}</span></h3>
+                        <p class="text-gray-300"><strong>Tips:</strong> ${data.tips}</p>
+                        <p class="text-gray-300"><strong>Deity:</strong> ${data.deity}</p>
+                    `;
+                } else {
+                    vastuTips.innerHTML = `<p>No specific tips available for this zone. Hold your device steady.</p>`;
+                }
             }
 
             function handleOrientation(event) {
@@ -371,13 +394,12 @@
                 }
                 const direction = getDirectionFromAngle(alpha);
                 
-                const rotation = 360 - alpha;
-                document.getElementById('needle').style.transform = `rotate(${rotation}deg)`;
+                // Rotate the compass face itself, not the needle
+                compassFaceWrapper.style.transform = `rotate(${-alpha}deg)`;
                 
                 angleDisplay.textContent = `${Math.round(alpha)}°`;
                 directionName.textContent = direction;
                 updateVastuTips(direction);
-                drawCompassFace(mainVastuLabels[direction]); // Pass the main label for highlighting if needed, though with the new design it's not strictly necessary for the drawing itself.
             }
 
             function requestPermission() {
@@ -388,8 +410,7 @@
                                 window.addEventListener('deviceorientation', handleOrientation);
                                 messageBox.innerHTML = '<p>Device access granted. Rotate your device to use the compass.</p>';
                                 permissionButton.style.display = 'none';
-                                updateVastuTips("N");
-                                drawCompassFace("N");
+                                updateVastuTips("N5");
                             } else {
                                 messageBox.innerHTML = '<p>Permission denied. The compass will not work.</p>';
                             }
@@ -399,8 +420,7 @@
                     window.addEventListener('deviceorientation', handleOrientation);
                     messageBox.innerHTML = '<p>Ready! Rotate your device to use the compass.</p>';
                     permissionButton.style.display = 'none';
-                    updateVastuTips("N");
-                    drawCompassFace("N");
+                    updateVastuTips("N5");
                 }
             }
 
