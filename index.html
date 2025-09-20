@@ -65,10 +65,10 @@
 
         .cardinal-label {
             position: absolute;
-            font-size: 1.2rem;
             font-weight: 700;
             z-index: 3;
             text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+            font-size: 5vmin; /* Use vmin for responsive font size */
         }
         /* These positions are now relative to the compass-face-wrapper */
         .cardinal-label.n { top: 1rem; left: 50%; transform: translateX(-50%); color: #ef4444; }
@@ -364,7 +364,7 @@
                 }
 
                 // Draw degree numbers and longer marks for 10-degree intervals
-                ctx.font = '0.9rem Inter';
+                ctx.font = `${(compassRadius * 0.07)}px Inter`;
                 ctx.fillStyle = '#e2e8f0';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
@@ -398,7 +398,7 @@
                     const sectorCenterAngle = (index * mainSectorAngle);
                     ctx.rotate(sectorCenterAngle * Math.PI / 180);
                     
-                    ctx.font = `0.8rem Inter`;
+                    ctx.font = `${(compassRadius * 0.06)}px Inter`;
                     ctx.fillStyle = '#60a5fa';
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
