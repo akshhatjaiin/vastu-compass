@@ -180,9 +180,9 @@
                 <p class="text-xl text-gray-400"><span id="traditional-direction-name">Calibrating...</span> (<span id="vastu-direction-name">--</span>)</p>
             </div>
             <div id="vastu-tips" class="text-sm">
-                <h3 class="font-semibold text-lg text-blue-300 mb-2">Vastu Tips for this Direction</h3>
+                <h3 class="font-semibold text-lg text-blue-300 mb-2">Vastu Information</h3>
                 <div id="vastu-content" class="text-gray-300">
-                    <p>Hold your device flat and level to begin. The tips will appear here.</p>
+                    <p>Hold your device flat and level to begin. Vastu information will appear here.</p>
                 </div>
             </div>
         </div>
@@ -215,44 +215,44 @@
 
             let compassRadius;
 
-            // Vastu data and ranges for the 32 zones
+            // Vastu data parsed from the user's CSV file
             const vastuData = {
-                "N1": { "tips": "New opportunities and career growth.", "deity": "Kubera" },
-                "N2": { "tips": "Wealth and prosperity. Ideal for financial activities.", "deity": "Kubera" },
-                "N3": { "tips": "Growth and flow of new ideas.", "deity": "Varuna" },
-                "N4": { "tips": "Path to success and financial stability.", "deity": "Varuna" },
-                "N5": { "tips": "New thought patterns and clarity.", "deity": "Vishwakarma" },
-                "N6": { "tips": "Knowledge and spiritual development.", "deity": "Vishwakarma" },
-                "N7": { "tips": "Balance and peace of mind.", "deity": "Indra" },
-                "N8": { "tips": "Health and immunity.", "deity": "Indra" },
-                "E1": { "tips": "Social associations and connections.", "deity": "Surya" },
-                "E2": { "tips": "Energy and enthusiasm.", "deity": "Surya" },
-                "E3": { "tips": "Positive interactions and relationships.", "deity": "Vayu" },
-                "E4": { "tips": "Harmony and happiness.", "deity": "Vayu" },
-                "E5": { "tips": "Mental strength and determination.", "deity": "Agni" },
-                "E6": { "tips": "Confidence and passion.", "deity": "Agni" },
-                "E7": { "tips": "Creativity and innovation.", "deity": "Chandra" },
-                "E8": { "tips": "Intuition and emotional balance.", "deity": "Chandra" },
-                "S1": { "tips": "Fame and recognition.", "deity": "Yama" },
-                "S2": { "tips": "Rest and relaxation.", "deity": "Yama" },
-                "S3": { "tips": "Stability and grounding.", "deity": "Nirrti" },
-                "S4": { "tips": "Strength and power.", "deity": "Nirrti" },
-                "S5": { "tips": "Peace and tranquility.", "deity": "Pitra" },
-                "S6": { "tips": "Support and security.", "deity": "Pitra" },
-                "S7": { "tips": "Dedication and hard work.", "deity": "Rudra" },
-                "S8": { "tips": "Effort and perseverance.", "deity": "Rudra" },
-                "W1": { "tips": "Gains and profits.", "deity": "Vishwakarma" },
-                "W2": { "tips": "Business and career success.", "deity": "Vishwakarma" },
-                "W3": { "tips": "Growth and expansion.", "deity": "Kubera" },
-                "W4": { "tips": "Wealth and financial returns.", "deity": "Kubera" },
-                "W5": { "tips": "Accumulation and savings.", "deity": "Varuna" },
-                "W6": { "tips": "Learning and knowledge.", "deity": "Varuna" },
-                "W7": { "tips": "Mental clarity and wisdom.", "deity": "Indra" },
-                "W8": { "tips": "Wisdom and intelligence.", "deity": "Indra" }
+                "N1": { "Direction": "NNW", "Element": "Water", "Colors": "Blue" },
+                "N2": { "Direction": "NNW", "Element": "Water", "Colors": "Blue" },
+                "N3": { "Direction": "N", "Element": "Water", "Colors": "Blue" },
+                "N4": { "Direction": "N", "Element": "Water", "Colors": "Blue" },
+                "N5": { "Direction": "N", "Element": "Water", "Colors": "Blue" },
+                "N6": { "Direction": "NNE", "Element": "Water", "Colors": "Blue, Green" },
+                "N7": { "Direction": "NNE", "Element": "Water", "Colors": "Blue, Green" },
+                "N8": { "Direction": "NE", "Element": "Air", "Colors": "Blue, Green" },
+                "E1": { "Direction": "NE", "Element": "Air", "Colors": "Blue, Green" },
+                "E2": { "Direction": "ENE", "Element": "Air", "Colors": "Green, Light Blue" },
+                "E3": { "Direction": "ENE", "Element": "Air", "Colors": "Green, Light Blue" },
+                "E4": { "Direction": "E", "Element": "Air", "Colors": "Green, Light Blue" },
+                "E5": { "Direction": "E", "Element": "Air", "Colors": "Green, Light Blue" },
+                "E6": { "Direction": "ESE", "Element": "Air", "Colors": "Green, Light Blue" },
+                "E7": { "Direction": "ESE", "Element": "Air", "Colors": "Green, Light Blue" },
+                "E8": { "Direction": "SE", "Element": "Fire", "Colors": "Red, Light Pink" },
+                "S1": { "Direction": "SE", "Element": "Fire", "Colors": "Red, Light Pink" },
+                "S2": { "Direction": "SSE", "Element": "Fire", "Colors": "Red, Light Pink" },
+                "S3": { "Direction": "SSE", "Element": "Fire", "Colors": "Red, Light Pink" },
+                "S4": { "Direction": "S", "Element": "Fire", "Colors": "Red, Light Pink" },
+                "S5": { "Direction": "S", "Element": "Fire", "Colors": "Red, Light Pink" },
+                "S6": { "Direction": "SSW", "Element": "Fire", "Colors": "Yellow" },
+                "S7": { "Direction": "SSW", "Element": "Fire", "Colors": "Yellow" },
+                "S8": { "Direction": "SW", "Element": "Earth", "Colors": "Yellow" },
+                "W1": { "Direction": "SW", "Element": "Earth", "Colors": "Yellow" },
+                "W2": { "Direction": "WSW", "Element": "Space", "Colors": "White" },
+                "W3": { "Direction": "WSW", "Element": "Space", "Colors": "White" },
+                "W4": { "Direction": "W", "Element": "Space", "Colors": "White" },
+                "W5": { "Direction": "W", "Element": "Space", "Colors": "White" },
+                "W6": { "Direction": "WNW", "Element": "Space", "Colors": "White" },
+                "W7": { "Direction": "WNW", "Element": "Space", "Colors": "White" },
+                "W8": { "Direction": "NW", "Element": "Space", "Colors": "White" }
             };
 
             const vastuZoneRanges = [
-                { name: "N4", min: 348.75, max: 360 }, // Special case, also includes 0
+                { name: "N4", min: 348.75, max: 360 },
                 { name: "N1", min: 315, max: 326.25 },
                 { name: "N2", min: 326.25, max: 337.5 },
                 { name: "N3", min: 337.5, max: 348.75 },
@@ -444,16 +444,16 @@
             }
 
 
-            function updateVastuTips(direction) {
-                const data = vastuData[direction];
+            function updateVastuTips(zone) {
+                const data = vastuData[zone];
                 if (data) {
                     vastuTips.innerHTML = `
-                        <h3 class="font-semibold text-lg text-blue-300">Vastu Tips for <span class="text-red-400 font-bold">${direction}</span></h3>
-                        <p class="text-gray-300"><strong>Tips:</strong> ${data.tips}</p>
-                        <p class="text-gray-300"><strong>Deity:</strong> ${data.deity}</p>
+                        <p class="text-gray-300"><strong>Vastu Zone:</strong> <span class="text-red-400 font-bold">${zone}</span></p>
+                        <p class="text-gray-300"><strong>Major Element:</strong> ${data.Element}</p>
+                        <p class="text-gray-300"><strong>Suitable Colors:</strong> ${data.Colors}</p>
                     `;
                 } else {
-                    vastuTips.innerHTML = `<p>No specific tips available for this zone. Hold your device steady.</p>`;
+                    vastuTips.innerHTML = `<p>No specific information available for this zone. Hold your device steady.</p>`;
                 }
             }
 
