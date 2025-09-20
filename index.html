@@ -19,7 +19,15 @@
             align-items: center;
             min-height: 100vh;
             padding: 1rem;
-            overflow: hidden;
+        }
+
+        .main-content-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 32rem;
+            gap: 1.5rem;
         }
 
         .compass-and-labels-wrapper {
@@ -31,7 +39,6 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-bottom: 2rem;
         }
 
         .compass-container {
@@ -133,7 +140,6 @@
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
             width: 100%;
             max-width: 32rem;
-            margin-top: 2rem;
         }
 
         .info-box h2 {
@@ -144,10 +150,10 @@
 
 <body class="bg-gray-900 flex flex-col items-center justify-center min-h-screen text-gray-200 p-4">
 
-    <!-- Overall layout container -->
-    <div class="flex flex-col items-center">
-        <h1 class="text-3xl font-bold mb-2">Vastu Compass</h1>
-        <p class="text-gray-400 mb-6 text-center">Hold your device flat and level to find your Vastu direction.</p>
+    <!-- Main Content Wrapper to handle responsive layout -->
+    <div class="main-content-wrapper">
+        <h1 class="text-3xl font-bold">Vastu Compass</h1>
+        <p class="text-gray-400 text-center">Hold your device flat and level to find your Vastu direction.</p>
 
         <div class="compass-and-labels-wrapper">
             <!-- Compass Container -->
@@ -188,17 +194,17 @@
         </div>
 
         <!-- Message/Status Display -->
-        <div id="message-box-container" class="mt-6">
+        <div id="message-box-container">
             <div id="message-box" class="p-4 bg-gray-800 border border-gray-700 text-gray-400 rounded-lg text-sm transition-opacity duration-300 max-w-sm text-center">
                 <p>Please grant permission to use the device sensor.</p>
             </div>
         </div>
-
-        <!-- Permission Button (iOS 13+) -->
-        <button id="permission-button" class="mt-4 px-6 py-3 bg-blue-600 text-white font-semibold rounded-full shadow-lg hover:bg-blue-700 transition-colors duration-300">
-            Allow Access
-        </button>
     </div>
+    
+    <!-- Permission Button (iOS 13+) - positioned outside the main content wrapper -->
+    <button id="permission-button" class="mt-4 px-6 py-3 bg-blue-600 text-white font-semibold rounded-full shadow-lg hover:bg-blue-700 transition-colors duration-300">
+        Allow Access
+    </button>
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
