@@ -215,40 +215,40 @@
 
             let compassRadius;
 
-            // Vastu data parsed from the user's CSV file
+            // Updated Vastu data from the provided CSV file
             const vastuData = {
-                "N1": { "Direction": "NNW", "Element": "Water", "Colors": "Blue" },
-                "N2": { "Direction": "NNW", "Element": "Water", "Colors": "Blue" },
-                "N3": { "Direction": "N", "Element": "Water", "Colors": "Blue" },
-                "N4": { "Direction": "N", "Element": "Water", "Colors": "Blue" },
-                "N5": { "Direction": "N", "Element": "Water", "Colors": "Blue" },
-                "N6": { "Direction": "NNE", "Element": "Water", "Colors": "Blue, Green" },
-                "N7": { "Direction": "NNE", "Element": "Water", "Colors": "Blue, Green" },
-                "N8": { "Direction": "NE", "Element": "Air", "Colors": "Blue, Green" },
-                "E1": { "Direction": "NE", "Element": "Air", "Colors": "Blue, Green" },
-                "E2": { "Direction": "ENE", "Element": "Air", "Colors": "Green, Light Blue" },
-                "E3": { "Direction": "ENE", "Element": "Air", "Colors": "Green, Light Blue" },
-                "E4": { "Direction": "E", "Element": "Air", "Colors": "Green, Light Blue" },
-                "E5": { "Direction": "E", "Element": "Air", "Colors": "Green, Light Blue" },
-                "E6": { "Direction": "ESE", "Element": "Air", "Colors": "Green, Light Blue" },
-                "E7": { "Direction": "ESE", "Element": "Air", "Colors": "Green, Light Blue" },
-                "E8": { "Direction": "SE", "Element": "Fire", "Colors": "Red, Light Pink" },
-                "S1": { "Direction": "SE", "Element": "Fire", "Colors": "Red, Light Pink" },
-                "S2": { "Direction": "SSE", "Element": "Fire", "Colors": "Red, Light Pink" },
-                "S3": { "Direction": "SSE", "Element": "Fire", "Colors": "Red, Light Pink" },
-                "S4": { "Direction": "S", "Element": "Fire", "Colors": "Red, Light Pink" },
-                "S5": { "Direction": "S", "Element": "Fire", "Colors": "Red, Light Pink" },
-                "S6": { "Direction": "SSW", "Element": "Fire", "Colors": "Yellow" },
-                "S7": { "Direction": "SSW", "Element": "Fire", "Colors": "Yellow" },
-                "S8": { "Direction": "SW", "Element": "Earth", "Colors": "Yellow" },
-                "W1": { "Direction": "SW", "Element": "Earth", "Colors": "Yellow" },
-                "W2": { "Direction": "WSW", "Element": "Space", "Colors": "White" },
-                "W3": { "Direction": "WSW", "Element": "Space", "Colors": "White" },
-                "W4": { "Direction": "W", "Element": "Space", "Colors": "White" },
-                "W5": { "Direction": "W", "Element": "Space", "Colors": "White" },
-                "W6": { "Direction": "WNW", "Element": "Space", "Colors": "White" },
-                "W7": { "Direction": "WNW", "Element": "Space", "Colors": "White" },
-                "W8": { "Direction": "NW", "Element": "Space", "Colors": "White" }
+                "N1": { "Direction": "NW", "Element": "Air", "Suitable Colors": "White, Light Blue" },
+                "N2": { "Direction": "NNW", "Element": "Water", "Suitable Colors": "Blue, Light Green" },
+                "N3": { "Direction": "NNW", "Element": "Water", "Suitable Colors": "Blue, Light Green" },
+                "N4": { "Direction": "N", "Element": "Water", "Suitable Colors": "Blue" },
+                "N5": { "Direction": "N", "Element": "Water", "Suitable Colors": "Blue" },
+                "N6": { "Direction": "NNE", "Element": "Water", "Suitable Colors": "Blue" },
+                "N7": { "Direction": "NNE", "Element": "Water", "Suitable Colors": "Blue" },
+                "N8": { "Direction": "NE", "Element": "Water", "Suitable Colors": "Blue" },
+                "E1": { "Direction": "NE", "Element": "Water", "Suitable Colors": "Blue, Light Green" },
+                "E2": { "Direction": "ENE", "Element": "Air", "Suitable Colors": "Green, Light Blue" },
+                "E3": { "Direction": "ENE", "Element": "Air", "Suitable Colors": "Green, Light Blue" },
+                "E4": { "Direction": "E", "Element": "Air", "Suitable Colors": "Green, Light Blue" },
+                "E5": { "Direction": "E", "Element": "Air", "Suitable Colors": "Green, Light Blue" },
+                "E6": { "Direction": "ESE", "Element": "Air", "Suitable Colors": "Green, Light Blue" },
+                "E7": { "Direction": "ESE", "Element": "Air", "Suitable Colors": "Green, Light Blue" },
+                "E8": { "Direction": "SE", "Element": "Fire", "Suitable Colors": "Red, Light Pink" },
+                "S1": { "Direction": "SE", "Element": "Fire", "Suitable Colors": "Red, Light Pink" },
+                "S2": { "Direction": "SSE", "Element": "Fire", "Suitable Colors": "Red, Light Pink" },
+                "S3": { "Direction": "SSE", "Element": "Fire", "Suitable Colors": "Red, Light Pink" },
+                "S4": { "Direction": "S", "Element": "Fire", "Suitable Colors": "Red, Light Pink" },
+                "S5": { "Direction": "S", "Element": "Fire", "Suitable Colors": "Red, Light Pink" },
+                "S6": { "Direction": "SSW", "Element": "Earth", "Suitable Colors": "Yellow, Light Yellow, Creme" },
+                "S7": { "Direction": "SSW", "Element": "Earth", "Suitable Colors": "Yellow, Light Yellow, Creme" },
+                "S8": { "Direction": "SW", "Element": "Earth", "Suitable Colors": "Yellow, Light Yellow, Creme" },
+                "W1": { "Direction": "SW", "Element": "Earth", "Suitable Colors": "Yellow, Light Yellow, Creme" },
+                "W2": { "Direction": "WSW", "Element": "Space", "Suitable Colors": "White, Creme, Off White, Silver, Light Grey" },
+                "W3": { "Direction": "WSW", "Element": "Space", "Suitable Colors": "White, Creme, Off White, Silver, Light Grey" },
+                "W4": { "Direction": "W", "Element": "Space", "Suitable Colors": "White, Creme, Off White, Silver, Light Grey" },
+                "W5": { "Direction": "W", "Element": "Space", "Suitable Colors": "White, Creme, Off White, Silver, Light Grey" },
+                "W6": { "Direction": "WNW", "Element": "Space", "Suitable Colors": "White, Creme, Off White, Silver, Light Grey" },
+                "W7": { "Direction": "WNW", "Element": "Space", "Suitable Colors": "White, Creme, Off White, Silver, Light Grey" },
+                "W8": { "Direction": "NW", "Element": "Space", "Suitable Colors": "White, Light Blue" }
             };
 
             const vastuZoneRanges = [
@@ -450,7 +450,7 @@
                     vastuTips.innerHTML = `
                         <p class="text-gray-300"><strong>Vastu Zone:</strong> <span class="text-red-400 font-bold">${zone}</span></p>
                         <p class="text-gray-300"><strong>Major Element:</strong> ${data.Element}</p>
-                        <p class="text-gray-300"><strong>Suitable Colors:</strong> ${data.Colors}</p>
+                        <p class="text-gray-300"><strong>Suitable Colors:</strong> ${data["Suitable Colors"]}</p>
                     `;
                 } else {
                     vastuTips.innerHTML = `<p>No specific information available for this zone. Hold your device steady.</p>`;
