@@ -222,6 +222,7 @@
             const compassContainer = document.querySelector('.compass-container');
 
             let compassRadius;
+            let lastVibratedAngle = -1; // Added for haptics
 
             // Updated Vastu data from the provided CSV file
             const vastuData = {
@@ -484,6 +485,18 @@
                 vastuDirectionName.textContent = vastuDirection;
                 traditionalDirectionName.textContent = traditionalDirection;
                 updateVastuTips(vastuDirection);
+
+                // Haptic Feedback Logic
+                // Check if a significant rotation has occurred (e.g., crossing a 11.25-degree boundary)
+                const currentVastuZoneIndex = Math.floor((alpha + 5.625) % 360 / 11.25);
+                const lastVastuZoneIndex = Math.floor((lastVibratedAngle + 5.625) % 360 / 11.25);
+                
+                if (currentVastuZoneIndex !== lastVastuZoneIndex) {
+                    if ('vibrate' in navigator) {
+                        navigator.vibrate(50); // Vibrate for 50ms
+                    }
+                    lastVibratedAngle = alpha;
+                }
             }
 
             function requestPermission() {
