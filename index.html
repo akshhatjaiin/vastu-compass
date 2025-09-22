@@ -139,6 +139,14 @@
         .info-box h2 {
             color: #3b82f6;
         }
+
+        .info-box h3 {
+            color: #3b82f6;
+        }
+
+        .vastu-info-item {
+            margin-bottom: 0.5rem;
+        }
     </style>
 </head>
 
@@ -217,45 +225,45 @@
 
             // Updated Vastu data from the provided CSV file
             const vastuData = {
-                "N1": { "Direction": "NW", "Element": "Air", "Suitable Colors": "White, Light Blue" },
-                "N2": { "Direction": "NNW", "Element": "Water", "Suitable Colors": "Blue, Light Green" },
-                "N3": { "Direction": "NNW", "Element": "Water", "Suitable Colors": "Blue, Light Green" },
-                "N4": { "Direction": "N", "Element": "Water", "Suitable Colors": "Blue" },
-                "N5": { "Direction": "N", "Element": "Water", "Suitable Colors": "Blue" },
-                "N6": { "Direction": "NNE", "Element": "Water", "Suitable Colors": "Blue" },
-                "N7": { "Direction": "NNE", "Element": "Water", "Suitable Colors": "Blue" },
-                "N8": { "Direction": "NE", "Element": "Water", "Suitable Colors": "Blue" },
-                "E1": { "Direction": "NE", "Element": "Water", "Suitable Colors": "Blue, Light Green" },
-                "E2": { "Direction": "ENE", "Element": "Air", "Suitable Colors": "Green, Light Blue" },
-                "E3": { "Direction": "ENE", "Element": "Air", "Suitable Colors": "Green, Light Blue" },
-                "E4": { "Direction": "E", "Element": "Air", "Suitable Colors": "Green, Light Blue" },
-                "E5": { "Direction": "E", "Element": "Air", "Suitable Colors": "Green, Light Blue" },
-                "E6": { "Direction": "ESE", "Element": "Air", "Suitable Colors": "Green, Light Blue" },
-                "E7": { "Direction": "ESE", "Element": "Air", "Suitable Colors": "Green, Light Blue" },
-                "E8": { "Direction": "SE", "Element": "Fire", "Suitable Colors": "Red, Light Pink" },
-                "S1": { "Direction": "SE", "Element": "Fire", "Suitable Colors": "Red, Light Pink" },
-                "S2": { "Direction": "SSE", "Element": "Fire", "Suitable Colors": "Red, Light Pink" },
-                "S3": { "Direction": "SSE", "Element": "Fire", "Suitable Colors": "Red, Light Pink" },
-                "S4": { "Direction": "S", "Element": "Fire", "Suitable Colors": "Red, Light Pink" },
-                "S5": { "Direction": "S", "Element": "Fire", "Suitable Colors": "Red, Light Pink" },
-                "S6": { "Direction": "SSW", "Element": "Earth", "Suitable Colors": "Yellow, Light Yellow, Creme" },
-                "S7": { "Direction": "SSW", "Element": "Earth", "Suitable Colors": "Yellow, Light Yellow, Creme" },
-                "S8": { "Direction": "SW", "Element": "Earth", "Suitable Colors": "Yellow, Light Yellow, Creme" },
-                "W1": { "Direction": "SW", "Element": "Earth", "Suitable Colors": "Yellow, Light Yellow, Creme" },
-                "W2": { "Direction": "WSW", "Element": "Space", "Suitable Colors": "White, Creme, Off White, Silver, Light Grey" },
-                "W3": { "Direction": "WSW", "Element": "Space", "Suitable Colors": "White, Creme, Off White, Silver, Light Grey" },
-                "W4": { "Direction": "W", "Element": "Space", "Suitable Colors": "White, Creme, Off White, Silver, Light Grey" },
-                "W5": { "Direction": "W", "Element": "Space", "Suitable Colors": "White, Creme, Off White, Silver, Light Grey" },
-                "W6": { "Direction": "WNW", "Element": "Space", "Suitable Colors": "White, Creme, Off White, Silver, Light Grey" },
-                "W7": { "Direction": "WNW", "Element": "Space", "Suitable Colors": "White, Creme, Off White, Silver, Light Grey" },
-                "W8": { "Direction": "NW", "Element": "Space", "Suitable Colors": "White, Light Blue" }
+                "N1": { "Direction": "NW", "Element": "Air", "Suitable Colors": "White, Light Blue", "Avoid colors": "Red, Orange, Yellow", "Deity": "Vāyu Dev", "Significance": "Brings new opportunities, business deals, and contacts. Helps you connect with people and start fresh ventures." },
+                "N2": { "Direction": "NNW", "Element": "Water", "Suitable Colors": "Blue, Light Green", "Avoid colors": "Red, Orange, Yellow, Maroon, Brown", "Deity": "Nāga Dev", "Significance": "Controls money inflow. If strong, finances grow smoothly; if weak, cash flow suffers." },
+                "N3": { "Direction": "NNW", "Element": "Water", "Suitable Colors": "Blue, Light Green", "Avoid colors": "Red, Orange, Yellow, Maroon, Brown", "Deity": "Nāga Kanya", "Significance": "Gives support from helpers, friends, and social networks. Weakness here brings lack of cooperation." },
+                "N4": { "Direction": "N", "Element": "Water", "Suitable Colors": "Blue", "Avoid colors": "Red, Orange, Yellow", "Deity": "Kubera", "Significance": "Governs career path and life direction. If balanced, it brings job growth and progress." },
+                "N5": { "Direction": "N", "Element": "Water", "Suitable Colors": "Blue", "Avoid colors": "Red, Orange, Yellow", "Deity": "Kubera", "Significance": "Helps in mental clarity, focus, and goal setting. Weakness causes confusion and lack of direction." },
+                "N6": { "Direction": "NNE", "Element": "Water", "Suitable Colors": "Blue", "Avoid colors": "Red, Maroon", "Deity": "Dhanvantri", "Significance": "Zone of immunity and healing energy. Good here = strong health; weak = recurring health issues." },
+                "N7": { "Direction": "NNE", "Element": "Water", "Suitable Colors": "Blue", "Avoid colors": "Red, Maroon", "Deity": "Āpa Dev", "Significance": "Controls mental health and emotional strength. Balancing it keeps mind stable and peaceful." },
+                "N8": { "Direction": "NE", "Element": "Water", "Suitable Colors": "Blue", "Avoid colors": "Red, Maroon", "Deity": "Īshān (Shiva)", "Significance": "Wisdom and knowledge zone. Supports learning, spiritual growth, and wise decision-making." },
+                "E1": { "Direction": "NE", "Element": "Water", "Suitable Colors": "Blue, Light Green", "Avoid colors": "Red, Maroon, Brown", "Deity": "Īshān (Shiva)", "Significance": "Improves clarity and self-awareness. Helps to overcome life's obstacles easily." },
+                "E2": { "Direction": "ENE", "Element": "Air", "Suitable Colors": "Green, Light Blue", "Avoid colors": "Red, Orange, Yellow", "Deity": "Parjanya Dev", "Significance": "Represents joy and recreation. Weakness in this zone makes you miss out on life's pleasures." },
+                "E3": { "Direction": "ENE", "Element": "Air", "Suitable Colors": "Green, Light Blue", "Avoid colors": "Red, Orange, Yellow", "Deity": "Jayant", "Significance": "This is the zone of social association and connections. It helps you network and meet people easily." },
+                "E4": { "Direction": "E", "Element": "Air", "Suitable Colors": "Green, Light Blue", "Avoid colors": "Red, Orange, Yellow", "Deity": "Indra", "Significance": "Controls connections and new contacts. Weakness results in loss of contacts and no new people." },
+                "E5": { "Direction": "E", "Element": "Air", "Suitable Colors": "Green, Light Blue", "Avoid colors": "Red, Orange, Yellow", "Deity": "Indra", "Significance": "Helps you connect with influential people and authorities. Weakness leads to losing influence." },
+                "E6": { "Direction": "ESE", "Element": "Air", "Suitable Colors": "Green, Light Blue", "Avoid colors": "Yellow, Maroon", "Deity": "Surya", "Significance": "It is the zone of churning and brainstorming. It helps in processing new ideas and thoughts." },
+                "E7": { "Direction": "ESE", "Element": "Air", "Suitable Colors": "Green, Light Blue", "Avoid colors": "Yellow, Maroon", "Deity": "Satya Dev", "Significance": "The zone of focus and concentration. Supports you in completing tasks with full attention and accuracy." },
+                "E8": { "Direction": "SE", "Element": "Fire", "Suitable Colors": "Red, Light Pink", "Avoid colors": "Blue, Black", "Deity": "Agni", "Significance": "Represents cash flow. Weakness in this zone can cause a shortage of funds and bad debts." },
+                "S1": { "Direction": "SE", "Element": "Fire", "Suitable Colors": "Red, Light Pink", "Avoid colors": "Blue, Black", "Deity": "Agni", "Significance": "Controls relationships. If balanced, it helps you attract loving partners and improve existing relationships." },
+                "S2": { "Direction": "SSE", "Element": "Fire", "Suitable Colors": "Red, Light Pink", "Avoid colors": "Blue, Black", "Deity": "Yama", "Significance": "Brings fame and recognition zone. Supports popularity, brand value, and visibility." },
+                "S3": { "Direction": "SSE", "Element": "Fire", "Suitable Colors": "Red, Light Pink", "Avoid colors": "Blue, Black", "Deity": "Gandharva", "Significance": "Gives physical strength, enthusiasm, and energy." },
+                "S4": { "Direction": "S", "Element": "Fire", "Suitable Colors": "Red, Light Pink", "Avoid colors": "Blue, Black", "Deity": "Pitru Dev", "Significance": "Brings discipline, focus, and determination to complete tasks." },
+                "S5": { "Direction": "S", "Element": "Fire", "Suitable Colors": "Red, Light Pink", "Avoid colors": "Blue, Black", "Deity": "Pitru Dev", "Significance": "Leadership, authority, and control over life and career." },
+                "S6": { "Direction": "SSW", "Element": "Earth", "Suitable Colors": "Yellow, Light Yellow, Creme", "Avoid colors": "Blue, Black, Green", "Deity": "Mrityu Dev", "Significance": "Family bonding and harmony zone. Strengthens togetherness and relationships within the family." },
+                "S7": { "Direction": "SSW", "Element": "Earth", "Suitable Colors": "Yellow, Light Yellow, Creme", "Avoid colors": "Blue, Black, Green", "Deity": "Nairritya", "Significance": "Controls waste and disposal. Good for disposing of unwanted materials and relationships." },
+                "S8": { "Direction": "SW", "Element": "Earth", "Suitable Colors": "Yellow, Light Yellow, Creme", "Avoid colors": "Blue, Black, Green", "Deity": "Nairritya", "Significance": "Improves your skills and provides stability in all aspects of life." },
+                "W1": { "Direction": "SW", "Element": "Earth", "Suitable Colors": "Yellow, Light Yellow, Creme", "Avoid colors": "Blue, Black, Green", "Deity": "Pitru Dev", "Significance": "Strengthens relationships with your ancestors and helps you receive their blessings." },
+                "W2": { "Direction": "WSW", "Element": "Space", "Suitable Colors": "White, Creme, Off White, Silver, Light Grey", "Avoid colors": "Red, Brown, Orange Pink, Green", "Deity": "Pitr Dev", "Significance": "Represents savings. If strong, your savings will grow; if weak, there will be no savings." },
+                "W3": { "Direction": "WSW", "Element": "Space", "Suitable Colors": "White, Creme, Off White, Silver, Light Grey", "Avoid colors": "Red, Brown, Orange Pink, Green", "Deity": "Sugreeva", "Significance": "Brings new learning opportunities and helps you apply them in real life." },
+                "W4": { "Direction": "W", "Element": "Space", "Suitable Colors": "White, Creme, Off White, Silver, Light Grey", "Avoid colors": "Red, Brown, Orange Pink, Green", "Deity": "Varun", "Significance": "Governs gains and prosperity. This zone brings abundance and new opportunities in life." },
+                "W5": { "Direction": "W", "Element": "Space", "Suitable Colors": "White, Creme, Off White, Silver, Light Grey", "Avoid colors": "Red, Brown, Orange Pink, Green", "Deity": "Pushpdant", "Significance": "Controls the flow of wealth and ensures a steady income." },
+                "W6": { "Direction": "WNW", "Element": "Space", "Suitable Colors": "White, Creme, Off White, Silver, Light Grey", "Avoid colors": "Yellow, Green, Brown", "Deity": "Rudra", "Significance": "Helps you to let go of old attachments and unwanted feelings. It also helps you to focus on the future." },
+                "W7": { "Direction": "WNW", "Element": "Space", "Suitable Colors": "White, Creme, Off White, Silver, Light Grey", "Avoid colors": "Yellow, Green, Brown", "Deity": "Rudra", "Significance": "The zone of new beginnings and fresh starts. It helps you to move on from the past." },
+                "W8": { "Direction": "NW", "Element": "Space", "Suitable Colors": "White, Light Blue", "Avoid colors": "Yellow, Green, Brown", "Deity": "Vāyu Dev", "Significance": "The zone of new opportunities and business deals. It helps you to connect with people and start new ventures." }
             };
 
             const vastuZoneRanges = [
-                { name: "N4", min: 348.75, max: 360 },
-                { name: "N1", min: 315, max: 326.25 },
+                { name: "N1", min: 303.75, max: 315 },
                 { name: "N2", min: 326.25, max: 337.5 },
                 { name: "N3", min: 337.5, max: 348.75 },
+                { name: "N4", min: 348.75, max: 360 },
                 { name: "N5", min: 0, max: 11.25 },
                 { name: "N6", min: 11.25, max: 22.5 },
                 { name: "N7", min: 22.5, max: 33.75 },
@@ -285,7 +293,7 @@
                 { name: "W7", min: 292.5, max: 303.75 },
                 { name: "W8", min: 303.75, max: 315 },
             ];
-
+            
             const traditionalDirections = [
                 { name: "N", min: 348.75, max: 11.25 },
                 { name: "NNE", min: 11.25, max: 33.75 },
@@ -443,14 +451,17 @@
                 return "Unknown";
             }
 
-
             function updateVastuTips(zone) {
                 const data = vastuData[zone];
                 if (data) {
                     vastuTips.innerHTML = `
-                        <p class="text-gray-300"><strong>Vastu Zone:</strong> <span class="text-red-400 font-bold">${zone}</span></p>
-                        <p class="text-gray-300"><strong>Major Element:</strong> ${data.Element}</p>
-                        <p class="text-gray-300"><strong>Suitable Colors:</strong> ${data["Suitable Colors"]}</p>
+                        <div class="vastu-info-item"><strong>Vastu Zone:</strong> <span class="text-red-400 font-bold">${zone}</span></div>
+                        <div class="vastu-info-item"><strong>Traditional Direction:</strong> ${data.Direction}</div>
+                        <div class="vastu-info-item"><strong>Deity (Devta):</strong> ${data.Deity}</div>
+                        <div class="vastu-info-item"><strong>Major Element:</strong> ${data.Element}</div>
+                        <div class="vastu-info-item"><strong>Suitable Colors:</strong> ${data["Suitable Colors"]}</div>
+                        <div class="vastu-info-item"><strong>Avoid Colors:</strong> ${data["Avoid colors"]}</div>
+                        <div class="vastu-info-item mt-2"><strong>Significance:</strong> ${data.Significance}</div>
                     `;
                 } else {
                     vastuTips.innerHTML = `<p>No specific information available for this zone. Hold your device steady.</p>`;
