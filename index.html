@@ -76,7 +76,6 @@
         .cardinal-label.e { right: 1rem; top: 50%; transform: translateY(-50%); }
         .cardinal-label.w { left: 1rem; top: 50%; transform: translateY(-50%); }
 
-
         /* The needle container is now static, with the needle pointing "up" */
         .compass-needle-container {
             position: absolute;
@@ -147,10 +146,47 @@
         .vastu-info-item {
             margin-bottom: 0.5rem;
         }
+        
+        /* Modal-specific styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none; /* Hidden by default */
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        .modal-content {
+            background-color: #1f2937;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            max-width: 24rem;
+            width: 90%;
+            text-align: center;
+            border: 1px solid #4a5568;
+        }
     </style>
 </head>
 
 <body class="bg-gray-900 flex flex-col items-center justify-center min-h-screen text-gray-200 p-4">
+
+    <!-- Permission Modal Pop-up -->
+    <div id="permission-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 class="text-xl font-bold mb-4">Permission Required</h2>
+            <p id="modal-message" class="text-gray-300 mb-6">
+                To use the Vastu Compass, please allow access to your device's motion sensors.
+            </p>
+            <button id="permission-button" class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-full shadow-lg hover:bg-blue-700 transition-colors duration-300">
+                Allow Access
+            </button>
+        </div>
+    </div>
 
     <!-- Overall layout container -->
     <div class="flex flex-col items-center">
@@ -194,28 +230,17 @@
                 </div>
             </div>
         </div>
-
-        <!-- Message/Status Display -->
-        <div id="message-box-container" class="mt-6">
-            <div id="message-box" class="p-4 bg-gray-800 border border-gray-700 text-gray-400 rounded-lg text-sm transition-opacity duration-300 max-w-sm text-center">
-                <p>Please grant permission to use the device sensor.</p>
-            </div>
-        </div>
-
-        <!-- Permission Button (iOS 13+) -->
-        <button id="permission-button" class="mt-4 px-6 py-3 bg-blue-600 text-white font-semibold rounded-full shadow-lg hover:bg-blue-700 transition-colors duration-300">
-            Allow Access
-        </button>
     </div>
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             const permissionButton = document.getElementById('permission-button');
+            const permissionModal = document.getElementById('permission-modal');
+            const modalMessage = document.getElementById('modal-message');
             const traditionalDirectionName = document.getElementById('traditional-direction-name');
             const vastuDirectionName = document.getElementById('vastu-direction-name');
             const angleDisplay = document.getElementById('angle-display');
             const vastuTips = document.getElementById('vastu-content');
-            const messageBox = document.getElementById('message-box');
             const canvas = document.getElementById('compassCanvas');
             const compassFaceWrapper = document.getElementById('compass-face-wrapper');
             const ctx = canvas.getContext('2d');
@@ -510,35 +535,56 @@
                 }
             }
 
+            function showModal() {
+                permissionModal.style.display = 'flex';
+            }
+
+            function hideModal() {
+                permissionModal.style.display = 'none';
+            }
+
             function requestPermission() {
                 if (typeof DeviceOrientationEvent.requestPermission === 'function') {
                     DeviceOrientationEvent.requestPermission()
                         .then(response => {
                             if (response === 'granted') {
                                 window.addEventListener('deviceorientation', handleOrientation);
-                                messageBox.innerHTML = '<p>Device access granted. Rotate your device to use the compass.</p>';
-                                permissionButton.style.display = 'none';
+                                hideModal();
                                 updateVastuTips("N4");
                             } else {
-                                messageBox.innerHTML = '<p>Permission denied. The compass will not work.</p>';
+                                modalMessage.textContent = 'Permission denied. The compass will not work.';
                             }
                         })
-                        .catch(console.error);
+                        .catch(error => {
+                            modalMessage.textContent = 'An error occurred while requesting permission. Please check your device settings.';
+                            console.error(error);
+                        });
                 } else {
+                    // For non-iOS devices or older browsers
                     window.addEventListener('deviceorientation', handleOrientation);
-                    messageBox.innerHTML = '<p>Ready! Rotate your device to use the compass.</p>';
-                    permissionButton.style.display = 'none';
+                    hideModal();
                     updateVastuTips("N4");
                 }
             }
 
+            // Initial check for Device Orientation API support
             if (window.DeviceOrientationEvent) {
-                permissionButton.style.display = 'block';
-                permissionButton.addEventListener('click', requestPermission);
+                // Check if permission is needed (iOS 13+)
+                if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    showModal();
+                } else {
+                    // Start the compass directly for devices that don't need permission
+                    window.addEventListener('deviceorientation', handleOrientation);
+                    updateVastuTips("N4");
+                }
             } else {
-                messageBox.innerHTML = '<p>Your device does not support the required sensors for this compass.</p>';
+                modalMessage.textContent = 'Your device does not support the required sensors for this compass.';
+                showModal();
                 permissionButton.style.display = 'none';
             }
+
+            // Event listener for the button inside the modal
+            permissionButton.addEventListener('click', requestPermission);
 
             window.addEventListener('resize', resizeCanvas);
             resizeCanvas();
