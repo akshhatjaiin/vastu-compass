@@ -248,9 +248,8 @@
             const compassContainer = document.querySelector('.compass-container');
 
             let compassRadius;
-            let lastVibratedAngle = -1; // Added for haptics
             let angleHistory = []; // For smoothing
-            const HISTORY_SIZE = 10; // Number of readings to average
+            const HISTORY_SIZE = 15; // Increased for more smoothing
 
             // Vastu data from the provided CSV file
             const vastuData = {
@@ -509,7 +508,7 @@
                 }
             }
             
-            function smoothAndSnapAngle(currentAngle) {
+            function smoothAngle(currentAngle) {
                 angleHistory.push(currentAngle);
                 if (angleHistory.length > HISTORY_SIZE) {
                     angleHistory.shift();
@@ -517,30 +516,11 @@
             
                 // Simple moving average
                 const sum = angleHistory.reduce((acc, val) => {
-                    // This is a simple trick to correctly average angles, which wrap around at 360
                     const diff = val - angleHistory[0];
                     const normalizedDiff = diff > 180 ? diff - 360 : (diff < -180 ? diff + 360 : diff);
                     return acc + normalizedDiff;
                 }, 0);
                 const smoothedAngle = normalizeAngle(angleHistory[0] + (sum / angleHistory.length));
-            
-                // Snap-to-zone logic
-                const SNAP_TOLERANCE = 1.5; // Degrees
-                for (const zone of vastuZoneRanges) {
-                    const diff = Math.abs(smoothedAngle - zone.center);
-                    // Handle the 0/360 boundary for snapping
-                    const normalizedDiff = Math.min(diff, 360 - diff);
-                    
-                    if (normalizedDiff < SNAP_TOLERANCE) {
-                         // Vibrate once when we snap into place
-                        if ('vibrate' in navigator && Math.abs(lastVibratedAngle - zone.center) > SNAP_TOLERANCE) {
-                            navigator.vibrate(50);
-                            lastVibratedAngle = zone.center;
-                        }
-                        return zone.center;
-                    }
-                }
-            
                 return smoothedAngle;
             }
 
@@ -550,7 +530,7 @@
                     alpha = event.webkitCompassHeading;
                 }
                 
-                const smoothedAlpha = smoothAndSnapAngle(alpha);
+                const smoothedAlpha = smoothAngle(alpha);
 
                 const vastuDirection = getVastuDirectionFromAngle(smoothedAlpha);
                 const traditionalDirection = getTraditionalDirectionFromAngle(smoothedAlpha);
@@ -558,7 +538,8 @@
                 // Use CSS variable for smooth rotation
                 document.documentElement.style.setProperty('--compass-rotation', `${-smoothedAlpha}deg`);
 
-                angleDisplay.textContent = `${Math.round(smoothedAlpha)}°`;
+                // Display with two decimal places for more precision
+                angleDisplay.textContent = `${smoothedAlpha.toFixed(2)}°`;
                 vastuDirectionName.textContent = vastuDirection;
                 traditionalDirectionName.textContent = traditionalDirection;
                 updateVastuTips(vastuDirection);
