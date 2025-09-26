@@ -224,7 +224,7 @@
             let compassRadius;
             let lastVibratedAngle = -1; // Added for haptics
 
-            // Updated Vastu data from the provided CSV file
+            // Vastu data from the provided CSV file
             const vastuData = {
                 "N1": { "Direction": "NW", "Element": "Air", "Suitable Colors": "White, Light Blue", "Avoid colors": "Red, Orange, Yellow", "Deity": "Vāyu Dev", "Significance": "Brings new opportunities, business deals, and contacts. Helps you connect with people and start fresh ventures." },
                 "N2": { "Direction": "NNW", "Element": "Water", "Suitable Colors": "Blue, Light Green", "Avoid colors": "Red, Orange, Yellow, Maroon, Brown", "Deity": "Nāga Dev", "Significance": "Controls money inflow. If strong, finances grow smoothly; if weak, cash flow suffers." },
@@ -260,15 +260,14 @@
                 "W8": { "Direction": "NW", "Element": "Space", "Suitable Colors": "White, Light Blue", "Avoid colors": "Yellow, Green, Brown", "Deity": "Vāyu Dev", "Significance": "The zone of new opportunities and business deals. It helps you to connect with people and start new ventures." }
             };
 
+            // Corrected and logically ordered Vastu zone ranges (0-360 degrees)
             const vastuZoneRanges = [
-                { name: "N1", min: 303.75, max: 315 },
-                { name: "N2", min: 326.25, max: 337.5 },
-                { name: "N3", min: 337.5, max: 348.75 },
-                { name: "N4", min: 348.75, max: 360 },
+                // N (North)
                 { name: "N5", min: 0, max: 11.25 },
                 { name: "N6", min: 11.25, max: 22.5 },
                 { name: "N7", min: 22.5, max: 33.75 },
                 { name: "N8", min: 33.75, max: 45 },
+                // E (East)
                 { name: "E1", min: 45, max: 56.25 },
                 { name: "E2", min: 56.25, max: 67.5 },
                 { name: "E3", min: 67.5, max: 78.75 },
@@ -277,6 +276,7 @@
                 { name: "E6", min: 101.25, max: 112.5 },
                 { name: "E7", min: 112.5, max: 123.75 },
                 { name: "E8", min: 123.75, max: 135 },
+                // S (South)
                 { name: "S1", min: 135, max: 146.25 },
                 { name: "S2", min: 146.25, max: 157.5 },
                 { name: "S3", min: 157.5, max: 168.75 },
@@ -285,6 +285,7 @@
                 { name: "S6", min: 191.25, max: 202.5 },
                 { name: "S7", min: 202.5, max: 213.75 },
                 { name: "S8", min: 213.75, max: 225 },
+                // W (West)
                 { name: "W1", min: 225, max: 236.25 },
                 { name: "W2", min: 236.25, max: 247.5 },
                 { name: "W3", min: 247.5, max: 258.75 },
@@ -293,6 +294,11 @@
                 { name: "W6", min: 281.25, max: 292.5 },
                 { name: "W7", min: 292.5, max: 303.75 },
                 { name: "W8", min: 303.75, max: 315 },
+                // N (North)
+                { name: "N1", min: 315, max: 326.25 },
+                { name: "N2", min: 326.25, max: 337.5 },
+                { name: "N3", min: 337.5, max: 348.75 },
+                { name: "N4", min: 348.75, max: 360 },
             ];
             
             const traditionalDirections = [
@@ -396,6 +402,7 @@
                 const mainSectorAngle = 11.25;
                 
                 const vastuLabelRadius = compassRadius - 60;
+                // The order of these labels corresponds to the corrected vastuZoneRanges array
                 const vastuLabels = [
                     "N5", "N6", "N7", "N8", "E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8",
                     "S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "W1", "W2", "W3", "W4",
@@ -423,15 +430,17 @@
                 ctx.restore();
             }
 
+            // Corrected function to find the Vastu zone, handling the 360-degree wraparound.
             function getVastuDirectionFromAngle(angle) {
-                let currentAngle = angle;
+                // Adjust angle to a positive 0-360 range
+                let currentAngle = (angle + 360) % 360; 
                 
-                // Handle the wraparound case for N4
-                if (currentAngle >= 348.75) {
-                    return "N4";
-                }
-
                 for (const zone of vastuZoneRanges) {
+                    // Special case for the N4 zone which spans 348.75 to 360.
+                    // The range check for this needs to be slightly different since it touches the 0/360 boundary.
+                    if (zone.name === "N4" && (currentAngle >= zone.min || currentAngle < zone.max)) {
+                        return zone.name;
+                    }
                     if (currentAngle >= zone.min && currentAngle < zone.max) {
                         return zone.name;
                     }
@@ -440,12 +449,14 @@
             }
             
             function getTraditionalDirectionFromAngle(angle) {
+                // Same logic for traditional directions
+                let currentAngle = (angle + 360) % 360;
+                
                 for (const direction of traditionalDirections) {
-                    if (direction.name === "N") { // Special case for North
-                        if (angle >= direction.min || angle < direction.max) {
-                            return direction.name;
-                        }
-                    } else if (angle >= direction.min && angle < direction.max) {
+                    if (direction.name === "N" && (currentAngle >= direction.min || currentAngle < direction.max)) {
+                        return direction.name;
+                    }
+                    if (currentAngle >= direction.min && currentAngle < direction.max) {
                         return direction.name;
                     }
                 }
