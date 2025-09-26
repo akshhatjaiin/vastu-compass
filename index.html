@@ -249,7 +249,9 @@
 
             let compassRadius;
             let angleHistory = []; // For smoothing
-            const HISTORY_SIZE = 30; // Increased for a much smoother feel
+            const HISTORY_SIZE = 50; // Increased for a much smoother feel
+            let lastSmoothedAngle = 0;
+            const MAX_ANGLE_JUMP = 30; // Threshold to filter out large, sudden jumps
 
             // Vastu data from the provided CSV file
             const vastuData = {
@@ -461,7 +463,7 @@
             function normalizeAngle(angle) {
                 return (angle + 360) % 360;
             }
-
+            
             // Function to find the Vastu zone
             function getVastuDirectionFromAngle(angle) {
                 const currentAngle = normalizeAngle(angle); 
@@ -510,6 +512,16 @@
             
             // A more robust smoothing algorithm for circular data
             function smoothAngle(currentAngle) {
+                // Ignore large, sudden jumps
+                if (angleHistory.length > 0) {
+                    const lastAngle = angleHistory[angleHistory.length - 1];
+                    const diff = Math.abs(currentAngle - lastAngle);
+                    // Check for large differences, accounting for the 0/360 wrap
+                    if (diff > MAX_ANGLE_JUMP && diff < (360 - MAX_ANGLE_JUMP)) {
+                        return lastSmoothedAngle;
+                    }
+                }
+
                 angleHistory.push(currentAngle);
                 if (angleHistory.length > HISTORY_SIZE) {
                     angleHistory.shift();
@@ -539,6 +551,7 @@
                 }
                 
                 const smoothedAlpha = smoothAngle(alpha);
+                lastSmoothedAngle = smoothedAlpha;
 
                 const vastuDirection = getVastuDirectionFromAngle(smoothedAlpha);
                 const traditionalDirection = getTraditionalDirectionFromAngle(smoothedAlpha);
