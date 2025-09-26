@@ -249,7 +249,7 @@
 
             let compassRadius;
             let angleHistory = []; // For smoothing
-            const HISTORY_SIZE = 15; // Increased for more smoothing
+            const HISTORY_SIZE = 30; // Increased for a much smoother feel
 
             // Vastu data from the provided CSV file
             const vastuData = {
@@ -508,19 +508,27 @@
                 }
             }
             
+            // A more robust smoothing algorithm for circular data
             function smoothAngle(currentAngle) {
                 angleHistory.push(currentAngle);
                 if (angleHistory.length > HISTORY_SIZE) {
                     angleHistory.shift();
                 }
             
-                // Simple moving average
-                const sum = angleHistory.reduce((acc, val) => {
-                    const diff = val - angleHistory[0];
-                    const normalizedDiff = diff > 180 ? diff - 360 : (diff < -180 ? diff + 360 : diff);
-                    return acc + normalizedDiff;
-                }, 0);
-                const smoothedAngle = normalizeAngle(angleHistory[0] + (sum / angleHistory.length));
+                let sumX = 0;
+                let sumY = 0;
+
+                // Convert each angle to a vector and sum the components
+                for (const angle of angleHistory) {
+                    const angleRad = (angle - 90) * Math.PI / 180;
+                    sumX += Math.cos(angleRad);
+                    sumY += Math.sin(angleRad);
+                }
+
+                // Calculate the average vector and find its angle
+                const avgAngleRad = Math.atan2(sumY, sumX);
+                const smoothedAngle = normalizeAngle(avgAngleRad * 180 / Math.PI + 90);
+                
                 return smoothedAngle;
             }
 
@@ -543,7 +551,6 @@
                 vastuDirectionName.textContent = vastuDirection;
                 traditionalDirectionName.textContent = traditionalDirection;
                 updateVastuTips(vastuDirection);
-
             }
 
             function showModal() {
