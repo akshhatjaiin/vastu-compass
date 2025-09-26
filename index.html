@@ -53,6 +53,7 @@
             width: 100%;
             height: 100%;
             transition: transform 0.1s ease-out;
+            transform: rotate(var(--compass-rotation, 0deg)); /* Use CSS variable */
         }
         
         /* The compass canvas and the NSEW labels are now inside the rotating wrapper */
@@ -248,6 +249,8 @@
 
             let compassRadius;
             let lastVibratedAngle = -1; // Added for haptics
+            let angleHistory = []; // For smoothing
+            const HISTORY_SIZE = 10; // Number of readings to average
 
             // Vastu data from the provided CSV file
             const vastuData = {
@@ -288,42 +291,42 @@
             // Corrected and logically ordered Vastu zone ranges (0-360 degrees)
             const vastuZoneRanges = [
                 // N (North)
-                { name: "N5", min: 0, max: 11.25 },
-                { name: "N6", min: 11.25, max: 22.5 },
-                { name: "N7", min: 22.5, max: 33.75 },
-                { name: "N8", min: 33.75, max: 45 },
+                { name: "N5", min: 0, max: 11.25, center: 5.625 },
+                { name: "N6", min: 11.25, max: 22.5, center: 16.875 },
+                { name: "N7", min: 22.5, max: 33.75, center: 28.125 },
+                { name: "N8", min: 33.75, max: 45, center: 39.375 },
                 // E (East)
-                { name: "E1", min: 45, max: 56.25 },
-                { name: "E2", min: 56.25, max: 67.5 },
-                { name: "E3", min: 67.5, max: 78.75 },
-                { name: "E4", min: 78.75, max: 90 },
-                { name: "E5", min: 90, max: 101.25 },
-                { name: "E6", min: 101.25, max: 112.5 },
-                { name: "E7", min: 112.5, max: 123.75 },
-                { name: "E8", min: 123.75, max: 135 },
+                { name: "E1", min: 45, max: 56.25, center: 50.625 },
+                { name: "E2", min: 56.25, max: 67.5, center: 61.875 },
+                { name: "E3", min: 67.5, max: 78.75, center: 73.125 },
+                { name: "E4", min: 78.75, max: 90, center: 84.375 },
+                { name: "E5", min: 90, max: 101.25, center: 95.625 },
+                { name: "E6", min: 101.25, max: 112.5, center: 106.875 },
+                { name: "E7", min: 112.5, max: 123.75, center: 118.125 },
+                { name: "E8", min: 123.75, max: 135, center: 129.375 },
                 // S (South)
-                { name: "S1", min: 135, max: 146.25 },
-                { name: "S2", min: 146.25, max: 157.5 },
-                { name: "S3", min: 157.5, max: 168.75 },
-                { name: "S4", min: 168.75, max: 180 },
-                { name: "S5", min: 180, max: 191.25 },
-                { name: "S6", min: 191.25, max: 202.5 },
-                { name: "S7", min: 202.5, max: 213.75 },
-                { name: "S8", min: 213.75, max: 225 },
+                { name: "S1", min: 135, max: 146.25, center: 140.625 },
+                { name: "S2", min: 146.25, max: 157.5, center: 151.875 },
+                { name: "S3", min: 157.5, max: 168.75, center: 163.125 },
+                { name: "S4", min: 168.75, max: 180, center: 174.375 },
+                { name: "S5", min: 180, max: 191.25, center: 185.625 },
+                { name: "S6", min: 191.25, max: 202.5, center: 196.875 },
+                { name: "S7", min: 202.5, max: 213.75, center: 208.125 },
+                { name: "S8", min: 213.75, max: 225, center: 219.375 },
                 // W (West)
-                { name: "W1", min: 225, max: 236.25 },
-                { name: "W2", min: 236.25, max: 247.5 },
-                { name: "W3", min: 247.5, max: 258.75 },
-                { name: "W4", min: 258.75, max: 270 },
-                { name: "W5", min: 270, max: 281.25 },
-                { name: "W6", min: 281.25, max: 292.5 },
-                { name: "W7", min: 292.5, max: 303.75 },
-                { name: "W8", min: 303.75, max: 315 },
+                { name: "W1", min: 225, max: 236.25, center: 230.625 },
+                { name: "W2", min: 236.25, max: 247.5, center: 241.875 },
+                { name: "W3", min: 247.5, max: 258.75, center: 253.125 },
+                { name: "W4", min: 258.75, max: 270, center: 264.375 },
+                { name: "W5", min: 270, max: 281.25, center: 275.625 },
+                { name: "W6", min: 281.25, max: 292.5, center: 286.875 },
+                { name: "W7", min: 292.5, max: 303.75, center: 298.125 },
+                { name: "W8", min: 303.75, max: 315, center: 309.375 },
                 // N (North)
-                { name: "N1", min: 315, max: 326.25 },
-                { name: "N2", min: 326.25, max: 337.5 },
-                { name: "N3", min: 337.5, max: 348.75 },
-                { name: "N4", min: 348.75, max: 360 },
+                { name: "N1", min: 315, max: 326.25, center: 320.625 },
+                { name: "N2", min: 326.25, max: 337.5, center: 331.875 },
+                { name: "N3", min: 337.5, max: 348.75, center: 343.125 },
+                { name: "N4", min: 348.75, max: 360, center: 354.375 },
             ];
             
             const traditionalDirections = [
@@ -454,17 +457,19 @@
                 ctx.fill();
                 ctx.restore();
             }
+            
+            // Function to normalize angles between 0 and 360
+            function normalizeAngle(angle) {
+                return (angle + 360) % 360;
+            }
 
-            // Corrected function to find the Vastu zone, handling the 360-degree wraparound.
+            // Function to find the Vastu zone
             function getVastuDirectionFromAngle(angle) {
-                // Adjust angle to a positive 0-360 range
-                let currentAngle = (angle + 360) % 360; 
+                const currentAngle = normalizeAngle(angle); 
                 
                 for (const zone of vastuZoneRanges) {
-                    // Special case for the N4 zone which spans 348.75 to 360.
-                    // The range check for this needs to be slightly different since it touches the 0/360 boundary.
-                    if (zone.name === "N4" && (currentAngle >= zone.min || currentAngle < zone.max)) {
-                        return zone.name;
+                    if (zone.name === "N5" && (currentAngle >= zone.min || currentAngle < zone.max)) {
+                         return zone.name;
                     }
                     if (currentAngle >= zone.min && currentAngle < zone.max) {
                         return zone.name;
@@ -474,8 +479,7 @@
             }
             
             function getTraditionalDirectionFromAngle(angle) {
-                // Same logic for traditional directions
-                let currentAngle = (angle + 360) % 360;
+                const currentAngle = normalizeAngle(angle);
                 
                 for (const direction of traditionalDirections) {
                     if (direction.name === "N" && (currentAngle >= direction.min || currentAngle < direction.max)) {
@@ -504,6 +508,41 @@
                     vastuTips.innerHTML = `<p>No specific information available for this zone. Hold your device steady.</p>`;
                 }
             }
+            
+            function smoothAndSnapAngle(currentAngle) {
+                angleHistory.push(currentAngle);
+                if (angleHistory.length > HISTORY_SIZE) {
+                    angleHistory.shift();
+                }
+            
+                // Simple moving average
+                const sum = angleHistory.reduce((acc, val) => {
+                    // This is a simple trick to correctly average angles, which wrap around at 360
+                    const diff = val - angleHistory[0];
+                    const normalizedDiff = diff > 180 ? diff - 360 : (diff < -180 ? diff + 360 : diff);
+                    return acc + normalizedDiff;
+                }, 0);
+                const smoothedAngle = normalizeAngle(angleHistory[0] + (sum / angleHistory.length));
+            
+                // Snap-to-zone logic
+                const SNAP_TOLERANCE = 1.5; // Degrees
+                for (const zone of vastuZoneRanges) {
+                    const diff = Math.abs(smoothedAngle - zone.center);
+                    // Handle the 0/360 boundary for snapping
+                    const normalizedDiff = Math.min(diff, 360 - diff);
+                    
+                    if (normalizedDiff < SNAP_TOLERANCE) {
+                         // Vibrate once when we snap into place
+                        if ('vibrate' in navigator && Math.abs(lastVibratedAngle - zone.center) > SNAP_TOLERANCE) {
+                            navigator.vibrate(50);
+                            lastVibratedAngle = zone.center;
+                        }
+                        return zone.center;
+                    }
+                }
+            
+                return smoothedAngle;
+            }
 
             function handleOrientation(event) {
                 let alpha = event.alpha;
@@ -511,28 +550,19 @@
                     alpha = event.webkitCompassHeading;
                 }
                 
-                const vastuDirection = getVastuDirectionFromAngle(alpha);
-                const traditionalDirection = getTraditionalDirectionFromAngle(alpha);
+                const smoothedAlpha = smoothAndSnapAngle(alpha);
+
+                const vastuDirection = getVastuDirectionFromAngle(smoothedAlpha);
+                const traditionalDirection = getTraditionalDirectionFromAngle(smoothedAlpha);
                 
-                // This is the key fix: rotate the entire compass face
-                compassFaceWrapper.style.transform = `rotate(${-alpha}deg)`;
-                
-                angleDisplay.textContent = `${Math.round(alpha)}°`;
+                // Use CSS variable for smooth rotation
+                document.documentElement.style.setProperty('--compass-rotation', `${-smoothedAlpha}deg`);
+
+                angleDisplay.textContent = `${Math.round(smoothedAlpha)}°`;
                 vastuDirectionName.textContent = vastuDirection;
                 traditionalDirectionName.textContent = traditionalDirection;
                 updateVastuTips(vastuDirection);
 
-                // Haptic Feedback Logic
-                // Check if a significant rotation has occurred (e.g., crossing a 11.25-degree boundary)
-                const currentVastuZoneIndex = Math.floor((alpha + 5.625) % 360 / 11.25);
-                const lastVastuZoneIndex = Math.floor((lastVibratedAngle + 5.625) % 360 / 11.25);
-                
-                if (currentVastuZoneIndex !== lastVastuZoneIndex) {
-                    if ('vibrate' in navigator) {
-                        navigator.vibrate(50); // Vibrate for 50ms
-                    }
-                    lastVibratedAngle = alpha;
-                }
             }
 
             function showModal() {
