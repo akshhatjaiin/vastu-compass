@@ -53,7 +53,6 @@
             width: 100%;
             height: 100%;
             transition: transform 0.1s ease-out;
-            transform: rotate(var(--compass-rotation, 0deg)); /* Use CSS variable */
         }
         
         /* The compass canvas and the NSEW labels are now inside the rotating wrapper */
@@ -76,6 +75,7 @@
         .cardinal-label.s { bottom: 1rem; left: 50%; transform: translateX(-50%); }
         .cardinal-label.e { right: 1rem; top: 50%; transform: translateY(-50%); }
         .cardinal-label.w { left: 1rem; top: 50%; transform: translateY(-50%); }
+
 
         /* The needle container is now static, with the needle pointing "up" */
         .compass-needle-container {
@@ -147,47 +147,10 @@
         .vastu-info-item {
             margin-bottom: 0.5rem;
         }
-        
-        /* Modal-specific styles */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            display: none; /* Hidden by default */
-            justify-content: center;
-            align-items: center;
-            z-index: 100;
-        }
-        .modal-content {
-            background-color: #1f2937;
-            padding: 2rem;
-            border-radius: 1rem;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
-            max-width: 24rem;
-            width: 90%;
-            text-align: center;
-            border: 1px solid #4a5568;
-        }
     </style>
 </head>
 
 <body class="bg-gray-900 flex flex-col items-center justify-center min-h-screen text-gray-200 p-4">
-
-    <!-- Permission Modal Pop-up -->
-    <div id="permission-modal" class="modal-overlay">
-        <div class="modal-content">
-            <h2 class="text-xl font-bold mb-4">Permission Required</h2>
-            <p id="modal-message" class="text-gray-300 mb-6">
-                To use the Vastu Compass, please allow access to your device's motion sensors.
-            </p>
-            <button id="permission-button" class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-full shadow-lg hover:bg-blue-700 transition-colors duration-300">
-                Allow Access
-            </button>
-        </div>
-    </div>
 
     <!-- Overall layout container -->
     <div class="flex flex-col items-center">
@@ -231,27 +194,35 @@
                 </div>
             </div>
         </div>
+
+        <!-- Message/Status Display -->
+        <div id="message-box-container" class="mt-6">
+            <div id="message-box" class="p-4 bg-gray-800 border border-gray-700 text-gray-400 rounded-lg text-sm transition-opacity duration-300 max-w-sm text-center">
+                <p>Please grant permission to use the device sensor.</p>
+            </div>
+        </div>
+
+        <!-- Permission Button (iOS 13+) -->
+        <button id="permission-button" class="mt-4 px-6 py-3 bg-blue-600 text-white font-semibold rounded-full shadow-lg hover:bg-blue-700 transition-colors duration-300">
+            Allow Access
+        </button>
     </div>
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             const permissionButton = document.getElementById('permission-button');
-            const permissionModal = document.getElementById('permission-modal');
-            const modalMessage = document.getElementById('modal-message');
             const traditionalDirectionName = document.getElementById('traditional-direction-name');
             const vastuDirectionName = document.getElementById('vastu-direction-name');
             const angleDisplay = document.getElementById('angle-display');
             const vastuTips = document.getElementById('vastu-content');
+            const messageBox = document.getElementById('message-box');
             const canvas = document.getElementById('compassCanvas');
             const compassFaceWrapper = document.getElementById('compass-face-wrapper');
             const ctx = canvas.getContext('2d');
             const compassContainer = document.querySelector('.compass-container');
 
             let compassRadius;
-            let angleHistory = []; // For smoothing
-            const HISTORY_SIZE = 50; // Increased for a much smoother feel
-            let lastSmoothedAngle = 0;
-            const MAX_ANGLE_JUMP = 30; // Threshold to filter out large, sudden jumps
+            let lastVibratedAngle = -1; // Added for haptics
 
             // Vastu data from the provided CSV file
             const vastuData = {
@@ -292,42 +263,42 @@
             // Corrected and logically ordered Vastu zone ranges (0-360 degrees)
             const vastuZoneRanges = [
                 // N (North)
-                { name: "N5", min: 0, max: 11.25, center: 5.625 },
-                { name: "N6", min: 11.25, max: 22.5, center: 16.875 },
-                { name: "N7", min: 22.5, max: 33.75, center: 28.125 },
-                { name: "N8", min: 33.75, max: 45, center: 39.375 },
+                { name: "N5", min: 0, max: 11.25 },
+                { name: "N6", min: 11.25, max: 22.5 },
+                { name: "N7", min: 22.5, max: 33.75 },
+                { name: "N8", min: 33.75, max: 45 },
                 // E (East)
-                { name: "E1", min: 45, max: 56.25, center: 50.625 },
-                { name: "E2", min: 56.25, max: 67.5, center: 61.875 },
-                { name: "E3", min: 67.5, max: 78.75, center: 73.125 },
-                { name: "E4", min: 78.75, max: 90, center: 84.375 },
-                { name: "E5", min: 90, max: 101.25, center: 95.625 },
-                { name: "E6", min: 101.25, max: 112.5, center: 106.875 },
-                { name: "E7", min: 112.5, max: 123.75, center: 118.125 },
-                { name: "E8", min: 123.75, max: 135, center: 129.375 },
+                { name: "E1", min: 45, max: 56.25 },
+                { name: "E2", min: 56.25, max: 67.5 },
+                { name: "E3", min: 67.5, max: 78.75 },
+                { name: "E4", min: 78.75, max: 90 },
+                { name: "E5", min: 90, max: 101.25 },
+                { name: "E6", min: 101.25, max: 112.5 },
+                { name: "E7", min: 112.5, max: 123.75 },
+                { name: "E8", min: 123.75, max: 135 },
                 // S (South)
-                { name: "S1", min: 135, max: 146.25, center: 140.625 },
-                { name: "S2", min: 146.25, max: 157.5, center: 151.875 },
-                { name: "S3", min: 157.5, max: 168.75, center: 163.125 },
-                { name: "S4", min: 168.75, max: 180, center: 174.375 },
-                { name: "S5", min: 180, max: 191.25, center: 185.625 },
-                { name: "S6", min: 191.25, max: 202.5, center: 196.875 },
-                { name: "S7", min: 202.5, max: 213.75, center: 208.125 },
-                { name: "S8", min: 213.75, max: 225, center: 219.375 },
+                { name: "S1", min: 135, max: 146.25 },
+                { name: "S2", min: 146.25, max: 157.5 },
+                { name: "S3", min: 157.5, max: 168.75 },
+                { name: "S4", min: 168.75, max: 180 },
+                { name: "S5", min: 180, max: 191.25 },
+                { name: "S6", min: 191.25, max: 202.5 },
+                { name: "S7", min: 202.5, max: 213.75 },
+                { name: "S8", min: 213.75, max: 225 },
                 // W (West)
-                { name: "W1", min: 225, max: 236.25, center: 230.625 },
-                { name: "W2", min: 236.25, max: 247.5, center: 241.875 },
-                { name: "W3", min: 247.5, max: 258.75, center: 253.125 },
-                { name: "W4", min: 258.75, max: 270, center: 264.375 },
-                { name: "W5", min: 270, max: 281.25, center: 275.625 },
-                { name: "W6", min: 281.25, max: 292.5, center: 286.875 },
-                { name: "W7", min: 292.5, max: 303.75, center: 298.125 },
-                { name: "W8", min: 303.75, max: 315, center: 309.375 },
+                { name: "W1", min: 225, max: 236.25 },
+                { name: "W2", min: 236.25, max: 247.5 },
+                { name: "W3", min: 247.5, max: 258.75 },
+                { name: "W4", min: 258.75, max: 270 },
+                { name: "W5", min: 270, max: 281.25 },
+                { name: "W6", min: 281.25, max: 292.5 },
+                { name: "W7", min: 292.5, max: 303.75 },
+                { name: "W8", min: 303.75, max: 315 },
                 // N (North)
-                { name: "N1", min: 315, max: 326.25, center: 320.625 },
-                { name: "N2", min: 326.25, max: 337.5, center: 331.875 },
-                { name: "N3", min: 337.5, max: 348.75, center: 343.125 },
-                { name: "N4", min: 348.75, max: 360, center: 354.375 },
+                { name: "N1", min: 315, max: 326.25 },
+                { name: "N2", min: 326.25, max: 337.5 },
+                { name: "N3", min: 337.5, max: 348.75 },
+                { name: "N4", min: 348.75, max: 360 },
             ];
             
             const traditionalDirections = [
@@ -458,19 +429,17 @@
                 ctx.fill();
                 ctx.restore();
             }
-            
-            // Function to normalize angles between 0 and 360
-            function normalizeAngle(angle) {
-                return (angle + 360) % 360;
-            }
-            
-            // Function to find the Vastu zone
+
+            // Corrected function to find the Vastu zone, handling the 360-degree wraparound.
             function getVastuDirectionFromAngle(angle) {
-                const currentAngle = normalizeAngle(angle); 
+                // Adjust angle to a positive 0-360 range
+                let currentAngle = (angle + 360) % 360; 
                 
                 for (const zone of vastuZoneRanges) {
-                    if (zone.name === "N5" && (currentAngle >= zone.min || currentAngle < zone.max)) {
-                         return zone.name;
+                    // Special case for the N4 zone which spans 348.75 to 360.
+                    // The range check for this needs to be slightly different since it touches the 0/360 boundary.
+                    if (zone.name === "N4" && (currentAngle >= zone.min || currentAngle < zone.max)) {
+                        return zone.name;
                     }
                     if (currentAngle >= zone.min && currentAngle < zone.max) {
                         return zone.name;
@@ -480,7 +449,8 @@
             }
             
             function getTraditionalDirectionFromAngle(angle) {
-                const currentAngle = normalizeAngle(angle);
+                // Same logic for traditional directions
+                let currentAngle = (angle + 360) % 360;
                 
                 for (const direction of traditionalDirections) {
                     if (direction.name === "N" && (currentAngle >= direction.min || currentAngle < direction.max)) {
@@ -509,40 +479,6 @@
                     vastuTips.innerHTML = `<p>No specific information available for this zone. Hold your device steady.</p>`;
                 }
             }
-            
-            // A more robust smoothing algorithm for circular data
-            function smoothAngle(currentAngle) {
-                // Ignore large, sudden jumps
-                if (angleHistory.length > 0) {
-                    const lastAngle = angleHistory[angleHistory.length - 1];
-                    const diff = Math.abs(currentAngle - lastAngle);
-                    // Check for large differences, accounting for the 0/360 wrap
-                    if (diff > MAX_ANGLE_JUMP && diff < (360 - MAX_ANGLE_JUMP)) {
-                        return lastSmoothedAngle;
-                    }
-                }
-
-                angleHistory.push(currentAngle);
-                if (angleHistory.length > HISTORY_SIZE) {
-                    angleHistory.shift();
-                }
-            
-                let sumX = 0;
-                let sumY = 0;
-
-                // Convert each angle to a vector and sum the components
-                for (const angle of angleHistory) {
-                    const angleRad = (angle - 90) * Math.PI / 180;
-                    sumX += Math.cos(angleRad);
-                    sumY += Math.sin(angleRad);
-                }
-
-                // Calculate the average vector and find its angle
-                const avgAngleRad = Math.atan2(sumY, sumX);
-                const smoothedAngle = normalizeAngle(avgAngleRad * 180 / Math.PI + 90);
-                
-                return smoothedAngle;
-            }
 
             function handleOrientation(event) {
                 let alpha = event.alpha;
@@ -550,28 +486,28 @@
                     alpha = event.webkitCompassHeading;
                 }
                 
-                const smoothedAlpha = smoothAngle(alpha);
-                lastSmoothedAngle = smoothedAlpha;
-
-                const vastuDirection = getVastuDirectionFromAngle(smoothedAlpha);
-                const traditionalDirection = getTraditionalDirectionFromAngle(smoothedAlpha);
+                const vastuDirection = getVastuDirectionFromAngle(alpha);
+                const traditionalDirection = getTraditionalDirectionFromAngle(alpha);
                 
-                // Use CSS variable for smooth rotation
-                document.documentElement.style.setProperty('--compass-rotation', `${-smoothedAlpha}deg`);
-
-                // Display with two decimal places for more precision
-                angleDisplay.textContent = `${smoothedAlpha.toFixed(2)}°`;
+                // This is the key fix: rotate the entire compass face
+                compassFaceWrapper.style.transform = `rotate(${-alpha}deg)`;
+                
+                angleDisplay.textContent = `${Math.round(alpha)}°`;
                 vastuDirectionName.textContent = vastuDirection;
                 traditionalDirectionName.textContent = traditionalDirection;
                 updateVastuTips(vastuDirection);
-            }
 
-            function showModal() {
-                permissionModal.style.display = 'flex';
-            }
-
-            function hideModal() {
-                permissionModal.style.display = 'none';
+                // Haptic Feedback Logic
+                // Check if a significant rotation has occurred (e.g., crossing a 11.25-degree boundary)
+                const currentVastuZoneIndex = Math.floor((alpha + 5.625) % 360 / 11.25);
+                const lastVastuZoneIndex = Math.floor((lastVibratedAngle + 5.625) % 360 / 11.25);
+                
+                if (currentVastuZoneIndex !== lastVastuZoneIndex) {
+                    if ('vibrate' in navigator) {
+                        navigator.vibrate(50); // Vibrate for 50ms
+                    }
+                    lastVibratedAngle = alpha;
+                }
             }
 
             function requestPermission() {
@@ -580,42 +516,29 @@
                         .then(response => {
                             if (response === 'granted') {
                                 window.addEventListener('deviceorientation', handleOrientation);
-                                hideModal();
+                                messageBox.innerHTML = '<p>Device access granted. Rotate your device to use the compass.</p>';
+                                permissionButton.style.display = 'none';
                                 updateVastuTips("N4");
                             } else {
-                                modalMessage.textContent = 'Permission denied. The compass will not work.';
+                                messageBox.innerHTML = '<p>Permission denied. The compass will not work.</p>';
                             }
                         })
-                        .catch(error => {
-                            modalMessage.textContent = 'An error occurred while requesting permission. Please check your device settings.';
-                            console.error(error);
-                        });
+                        .catch(console.error);
                 } else {
-                    // For non-iOS devices or older browsers
                     window.addEventListener('deviceorientation', handleOrientation);
-                    hideModal();
+                    messageBox.innerHTML = '<p>Ready! Rotate your device to use the compass.</p>';
+                    permissionButton.style.display = 'none';
                     updateVastuTips("N4");
                 }
             }
 
-            // Initial check for Device Orientation API support
             if (window.DeviceOrientationEvent) {
-                // Check if permission is needed (iOS 13+)
-                if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-                    showModal();
-                } else {
-                    // Start the compass directly for devices that don't need permission
-                    window.addEventListener('deviceorientation', handleOrientation);
-                    updateVastuTips("N4");
-                }
+                permissionButton.style.display = 'block';
+                permissionButton.addEventListener('click', requestPermission);
             } else {
-                modalMessage.textContent = 'Your device does not support the required sensors for this compass.';
-                showModal();
+                messageBox.innerHTML = '<p>Your device does not support the required sensors for this compass.</p>';
                 permissionButton.style.display = 'none';
             }
-
-            // Event listener for the button inside the modal
-            permissionButton.addEventListener('click', requestPermission);
 
             window.addEventListener('resize', resizeCanvas);
             resizeCanvas();
